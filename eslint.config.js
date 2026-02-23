@@ -17,7 +17,7 @@ export default [
       ecmaVersion: 2020,
       globals: globals.browser,
       parserOptions: {
-        project: './tsconfig.json',
+        project: './tsconfig.app.json',
       },
     },
     plugins: {
