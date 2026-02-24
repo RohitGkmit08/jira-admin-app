@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { EMAIL_REGEX } from '../../../constants/regex';
 import type { LoginFormError, LoginFormState } from '../types/auth-types';
 
 export function useLogin() {
@@ -25,7 +26,7 @@ export function useLogin() {
     };
     if (!form.email) {
       newError.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(form.email)) {
+    } else if (!EMAIL_REGEX.test(form.email)) {
       newError.email = 'Invalid email format';
     }
 

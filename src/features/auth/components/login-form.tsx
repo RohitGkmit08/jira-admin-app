@@ -1,5 +1,6 @@
-import { TextField, Button, Stack } from '@mui/material';
+import { Button, Stack } from '@mui/material';
 
+import Input from '../../../components/common/input';
 import { useLogin } from '../hooks/use-login';
 
 export default function LoginForm() {
@@ -7,17 +8,17 @@ export default function LoginForm() {
 
   return (
     <Stack spacing={2}>
-      <TextField
+      <Input
         label="Email"
         name="email"
+        type="email"
         value={form.email}
         onChange={handleChange}
         error={Boolean(errors.email)}
         helperText={errors.email}
-        fullWidth
       />
 
-      <TextField
+      <Input
         label="Password"
         name="password"
         type="password"
@@ -25,7 +26,6 @@ export default function LoginForm() {
         onChange={handleChange}
         error={Boolean(errors.password)}
         helperText={errors.password}
-        fullWidth
       />
 
       <Button variant="contained" onClick={handleSubmit} disabled={loading}>
