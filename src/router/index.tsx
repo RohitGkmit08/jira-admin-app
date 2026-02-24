@@ -1,21 +1,42 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 
-// Temporary placeholders (these will be replaced later)
-const LoginPage = () => <div>Login Page</div>;
-const ProjectsPage = () => <div>Projects Page</div>;
-const BoardPage = () => <div>Board Page</div>;
+import LoginPage from '../features/auth/pages/login-page';
+
+import RequireAuth from './require-auth';
+import RequireRole from './require-role';
+
+const ProjectsPage = () => <div>Projects</div>;
+const AdminPage = () => <div>Admin Only</div>;
 
 export const router = createBrowserRouter([
   {
+    path: '/',
+    element: <Navigate to="/login" replace />,
+  },
+  {
     path: '/login',
-    element: <LoginPage />,
+    element: localStorage.getItem('user') ? (
+      <Navigate to="/projects" replace />
+    ) : (
+      <LoginPage />
+    ),
   },
   {
     path: '/projects',
-    element: <ProjectsPage />,
+    element: (
+      <RequireAuth>
+        <ProjectsPage />
+      </RequireAuth>
+    ),
   },
   {
-    path: '/projects/:id',
-    element: <BoardPage />,
+    path: '/admin',
+    element: (
+      <RequireAuth>
+        <RequireRole allowedRoles={['admin']}>
+          <AdminPage />
+        </RequireRole>
+      </RequireAuth>
+    ),
   },
 ]);

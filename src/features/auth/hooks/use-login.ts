@@ -24,6 +24,7 @@ export function useLogin() {
       email: '',
       password: '',
     };
+
     if (!form.email) {
       newError.email = 'Email is required';
     } else if (!EMAIL_REGEX.test(form.email)) {
@@ -31,7 +32,7 @@ export function useLogin() {
     }
 
     if (!form.password) {
-      newError.email = 'Password is required';
+      newError.password = 'Password is required';
     } else if (form.password.length < 4) {
       newError.password = 'Minimum 4 characters required';
     }
@@ -40,7 +41,6 @@ export function useLogin() {
 
     return !newError.email && !newError.password;
   };
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({
       ...prev,
@@ -56,20 +56,8 @@ export function useLogin() {
   const handleSubmit = () => {
     const isValid = validate();
     if (!isValid) return;
-
-    setLoading(true);
-
-    // hard coded login credentials as of now, will replace when Strapi is integrated
-    if (form.email === 'admin@gmail.com' && form.password === '12345') {
-      navigate('/projects');
-    } else {
-      setError({
-        email: '',
-        password: 'invalid credentials',
-      });
-    }
-
-    setLoading(false);
+    localStorage.setItem('user', JSON.stringify({ role: 'admin' }));
+    navigate('/projects');
   };
 
   return {
