@@ -1,8 +1,7 @@
 import { AppBar, Toolbar, IconButton, Typography, Button } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useNavigate } from 'react-router-dom';
-
-import { ROUTES } from '../../constants/routes';
+import { ROUTES } from '../../../constants/routes';
 
 type Props = {
   onMenuClick: () => void;

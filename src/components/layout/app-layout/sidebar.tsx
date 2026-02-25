@@ -6,7 +6,7 @@ import {
   ListItemText,
   Toolbar,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 
 const drawerWidth = 240;
 
@@ -16,23 +16,35 @@ type Props = {
 };
 
 export default function Sidebar({ mobileOpen, onToggle }: Props) {
-  const navigate = useNavigate();
-
   const content = (
     <Box>
-      <Toolbar />
+      <Toolbar sx={{ minHeight: 64 }} />
 
-      <List>
-        <ListItemButton onClick={() => navigate('/projects')}>
-          <ListItemText primary="Projects" />
-        </ListItemButton>
+      <List sx={{ p: 0 }}>
+        <NavLink to="/projects" style={{ textDecoration: 'none' }}>
+          {({ isActive }) => (
+            <ListItemButton
+              sx={{
+                bgcolor: isActive ? 'action.selected' : 'transparent',
+              }}
+            >
+              <ListItemText primary="Projects" />
+            </ListItemButton>
+          )}
+        </NavLink>
       </List>
     </Box>
   );
 
   return (
-    <>
-      {/* Mobile Drawer */}
+    <Box
+      component="nav"
+      sx={{
+        width: { md: drawerWidth },
+        flexShrink: { md: 0 },
+      }}
+    >
+      {/* Mobile */}
       <Drawer
         variant="temporary"
         open={mobileOpen}
@@ -46,7 +58,7 @@ export default function Sidebar({ mobileOpen, onToggle }: Props) {
         {content}
       </Drawer>
 
-      {/* Desktop Drawer */}
+      {/* Desktop */}
       <Drawer
         variant="permanent"
         open
@@ -60,6 +72,6 @@ export default function Sidebar({ mobileOpen, onToggle }: Props) {
       >
         {content}
       </Drawer>
-    </>
+    </Box>
   );
 }
