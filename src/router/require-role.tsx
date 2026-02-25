@@ -1,18 +1,19 @@
 import { Navigate } from 'react-router-dom';
 
-import { useAuthSession } from '../features/auth/hooks/use-auth-session';
-import type { UserRole } from '../features/auth/types/auth-user.types';
-
-interface Props {
+type Props = {
   children: React.ReactNode;
-  allowedRoles: UserRole[];
-}
+  allowedRoles: string[];
+};
 
 export default function RequireRole({ children, allowedRoles }: Props) {
-  const { user } = useAuthSession();
+  const user = JSON.parse(localStorage.getItem('user') || 'null');
 
-  if (!user || !allowedRoles.includes(user.role)) {
-    return <Navigate to="/unauthorized" replace />;
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!allowedRoles.includes(user.role)) {
+    return <Navigate to="/projects" replace />;
   }
 
   return <>{children}</>;

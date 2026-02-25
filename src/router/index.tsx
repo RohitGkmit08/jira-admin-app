@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import LoginPage from '../features/auth/pages/login-page';
+import AppLayout from '../components/layout/app-layout';
 
 import RequireAuth from './require-auth';
 import RequireRole from './require-role';
@@ -11,8 +12,10 @@ const AdminPage = () => <div>Admin Only</div>;
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <Navigate to="/login" replace />,
+    element: <Navigate to="/projects" replace />,
   },
+
+  // Public
   {
     path: '/login',
     element: localStorage.getItem('user') ? (
@@ -21,22 +24,28 @@ export const router = createBrowserRouter([
       <LoginPage />
     ),
   },
+
+  // Protected
   {
-    path: '/projects',
-    element: (
-      <RequireAuth>
-        <ProjectsPage />
-      </RequireAuth>
-    ),
-  },
-  {
-    path: '/admin',
-    element: (
-      <RequireAuth>
-        <RequireRole allowedRoles={['admin']}>
-          <AdminPage />
-        </RequireRole>
-      </RequireAuth>
-    ),
+    element: <RequireAuth />,
+    children: [
+      {
+        element: <AppLayout />,
+        children: [
+          {
+            path: '/projects',
+            element: <ProjectsPage />,
+          },
+          {
+            path: '/admin',
+            element: (
+              <RequireRole allowedRoles={['admin']}>
+                <AdminPage />
+              </RequireRole>
+            ),
+          },
+        ],
+      },
+    ],
   },
 ]);

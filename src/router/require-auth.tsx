@@ -1,15 +1,11 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 
-interface Props {
-  children: React.ReactNode;
-}
-
-export default function RequireAuth({ children }: Props) {
+export default function RequireAuth() {
   const user = localStorage.getItem('user');
 
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  return <>{children}</>;
+  return <Outlet />;
 }
