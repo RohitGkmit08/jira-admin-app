@@ -5,9 +5,10 @@ import {
   ListItemButton,
   ListItemText,
   Toolbar,
-  Typography,
+  Divider,
+  Button,
 } from '@mui/material';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 
 const drawerWidth = 240;
 
@@ -17,41 +18,58 @@ type Props = {
 };
 
 export default function Sidebar({ mobileOpen, onToggle }: Props) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const isProjectDetails = location.pathname.startsWith('/projects/');
+
   const content = (
-    <Box>
+    <Box
+      sx={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
       <Toolbar sx={{ minHeight: 64 }} />
 
-      <Box px={2} py={1}>
-        <Typography variant="caption" color="text.secondary">
-          MAIN
-        </Typography>
+      {/* TOP NAV */}
+      <Box sx={{ flexGrow: 1 }}>
+        <List sx={{ p: 0 }}>
+          <NavLink to="/projects" style={{ textDecoration: 'none' }}>
+            {({ isActive }) => (
+              <ListItemButton
+                sx={{
+                  bgcolor: isActive ? 'action.selected' : 'transparent',
+                }}
+              >
+                <ListItemText primary="Projects" />
+              </ListItemButton>
+            )}
+          </NavLink>
+        </List>
       </Box>
 
-      <List sx={{ px: 1 }}>
-        <NavLink to="/projects" style={{ textDecoration: 'none' }}>
-          {({ isActive }) => (
-            <ListItemButton
-              sx={{
-                borderRadius: 1,
-                mb: 0.5,
-                px: 2,
-                py: 1,
-                bgcolor: isActive ? 'action.selected' : 'transparent',
-                '&:hover': {
-                  bgcolor: 'action.hover',
-                },
-              }}
-            >
-              <ListItemText
-                primary="Projects"
-                primaryTypographyProps={{
-                  fontWeight: isActive ? 600 : 400,
-                }}
-              />
-            </ListItemButton>
-          )}
-        </NavLink>
-      </List>
+      {/* BOTTOM BACK BUTTON */}
+      {isProjectDetails && (
+        <Box px={2} pb={2}>
+          <Divider sx={{ mb: 2 }} />
+
+          <Button
+            fullWidth
+            variant="contained"
+            size="large"
+            onClick={() => navigate('/projects')}
+            sx={{
+              textTransform: 'none',
+              py: 1.5,
+              fontWeight: 600,
+            }}
+          >
+            ← Back to Projects
+          </Button>
+        </Box>
+      )}
     </Box>
   );
 
@@ -63,6 +81,7 @@ export default function Sidebar({ mobileOpen, onToggle }: Props) {
         flexShrink: { md: 0 },
       }}
     >
+      {/* Mobile */}
       <Drawer
         variant="temporary"
         open={mobileOpen}
@@ -70,14 +89,13 @@ export default function Sidebar({ mobileOpen, onToggle }: Props) {
         ModalProps={{ keepMounted: true }}
         sx={{
           display: { xs: 'block', md: 'none' },
-          '& .MuiDrawer-paper': {
-            width: drawerWidth,
-          },
+          '& .MuiDrawer-paper': { width: drawerWidth },
         }}
       >
         {content}
       </Drawer>
 
+      {/* Desktop */}
       <Drawer
         variant="permanent"
         open
@@ -86,7 +104,6 @@ export default function Sidebar({ mobileOpen, onToggle }: Props) {
           '& .MuiDrawer-paper': {
             width: drawerWidth,
             boxSizing: 'border-box',
-            borderRight: '1px solid #eee', // subtle separation
           },
         }}
       >

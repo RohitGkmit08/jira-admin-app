@@ -21,7 +21,7 @@ export default function AppLayout() {
         component="main"
         sx={{
           flexGrow: 1,
-          bgcolor: 'background.default',
+          bgcolor: '#f4f5f7',
           minHeight: '100vh',
           display: 'flex',
           justifyContent: 'center',

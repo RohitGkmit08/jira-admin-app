@@ -38,7 +38,7 @@ export default function ProjectsPage() {
 
     const newProject: Project = {
       id: Date.now(),
-      name: projectName,
+      name: projectName.trim(),
     };
 
     setProjects((prev) => [...prev, newProject]);
@@ -76,7 +76,7 @@ export default function ProjectsPage() {
           sx={{
             p: 2,
             minWidth: 200,
-            border: '1px solid #eee',
+            border: '1px solid #e5e7eb',
             boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
           }}
         >
@@ -92,7 +92,7 @@ export default function ProjectsPage() {
           sx={{
             p: 2,
             minWidth: 200,
-            border: '1px solid #eee',
+            border: '1px solid #e5e7eb',
             boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
           }}
         >
@@ -118,14 +118,14 @@ export default function ProjectsPage() {
           </Box>
         ) : (
           <Box display="flex" flexDirection="column" gap={1}>
-            {projects.map((project) => (
+            {projects.map((project, index) => (
               <Box
                 key={project.id}
                 onClick={() => navigate(`/projects/${project.id}`)}
                 sx={{
                   p: 1.5,
                   borderRadius: 1,
-                  border: '1px solid #eee',
+                  border: '1px solid #e5e7eb',
                   transition: 'all 0.2s ease',
                   '&:hover': {
                     backgroundColor: '#f9fafb',
@@ -135,14 +135,17 @@ export default function ProjectsPage() {
                   },
                 }}
               >
-                <Typography fontWeight={500}>{project.name}</Typography>
+                <Typography fontWeight={500}>
+                  <span style={{ color: '#6b7280' }}>{index + 1}.</span>{' '}
+                  {project.name}
+                </Typography>
               </Box>
             ))}
           </Box>
         )}
       </Paper>
 
-      {/* CREATE PROJECT MODAL */}
+      {/* MODAL */}
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
         <DialogTitle>Create Project</DialogTitle>
 
