@@ -2,11 +2,12 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import LoginPage from '../features/auth/pages/login-page';
 import AppLayout from '../components/layout/app-layout';
+import ProjectsPage from '../features/projects/pages/projects-page';
+import ProjectDetailsPage from '../features/projects/pages/project-details-page';
 
 import RequireAuth from './require-auth';
 import RequireRole from './require-role';
 
-const ProjectsPage = () => <div>Projects</div>;
 const AdminPage = () => <div>Admin Only</div>;
 
 export const router = createBrowserRouter([
@@ -15,7 +16,6 @@ export const router = createBrowserRouter([
     element: <Navigate to="/projects" replace />,
   },
 
-  // Public
   {
     path: '/login',
     element: localStorage.getItem('user') ? (
@@ -25,7 +25,6 @@ export const router = createBrowserRouter([
     ),
   },
 
-  // Protected
   {
     element: <RequireAuth />,
     children: [
@@ -35,6 +34,10 @@ export const router = createBrowserRouter([
           {
             path: '/projects',
             element: <ProjectsPage />,
+          },
+          {
+            path: '/projects/:projectId',
+            element: <ProjectDetailsPage />,
           },
           {
             path: '/admin',
