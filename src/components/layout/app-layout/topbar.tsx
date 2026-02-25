@@ -16,15 +16,19 @@ export default function Topbar({ onMenuClick }: Props) {
   };
 
   return (
-    <AppBar position="static">
+    <AppBar position="fixed">
       <Toolbar>
-        <IconButton onClick={onMenuClick}>
+        <IconButton edge="start" color="inherit" onClick={onMenuClick}>
           <MenuIcon />
         </IconButton>
 
-        <Typography sx={{ flexGrow: 1 }}>Dashboard</Typography>
+        <Typography variant="h6" sx={{ flexGrow: 1 }}>
+          Dashboard
+        </Typography>
 
-        <Button onClick={handleLogout}>Logout</Button>
+        <Button color="inherit" onClick={handleLogout}>
+          Logout
+        </Button>
       </Toolbar>
     </AppBar>
   );

@@ -5,8 +5,6 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from './sidebar';
 import Topbar from './topbar';
 
-const drawerWidth = 240;
-
 export default function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -17,21 +15,28 @@ export default function AppLayout() {
   return (
     <Box sx={{ display: 'flex' }}>
       <Topbar onMenuClick={handleToggle} />
-
       <Sidebar mobileOpen={mobileOpen} onToggle={handleToggle} />
 
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
-          ml: { md: `${drawerWidth}px` },
           bgcolor: 'background.default',
           minHeight: '100vh',
+          display: 'flex',
+          justifyContent: 'center',
         }}
       >
-        <Toolbar sx={{ minHeight: 64 }} />
-        <Outlet />
+        <Box
+          sx={{
+            width: '100%',
+            maxWidth: '1000px',
+            p: 3,
+          }}
+        >
+          <Toolbar sx={{ minHeight: 64 }} />
+          <Outlet />
+        </Box>
       </Box>
     </Box>
   );
