@@ -1,7 +1,7 @@
 import { Navigate } from 'react-router-dom';
 
-import { useAuthSession } from '../features/auth/hooks/use-auth-session';
-import type { UserRole } from '../features/auth/types/auth-user.types';
+import type { UserRole } from '../features/login/types/auth-user.types';
+import { useAuthSession } from '../features/login/hooks/use-auth-session';
 
 interface Props {
   children: React.ReactNode;
