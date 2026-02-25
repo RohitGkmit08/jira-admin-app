@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
-import LoginPage from '../features/auth/pages/login-page';
+import LoginPage from '../features/login/pages';
 import AppLayout from '../components/layout/app-layout';
 
 import RequireAuth from './require-auth';
@@ -9,7 +9,7 @@ import RequireRole from './require-role';
 const ProjectsPage = () => <div>Projects</div>;
 const AdminPage = () => <div>Admin Only</div>;
 
-export const router = createBrowserRouter([
+const router = createBrowserRouter([
   {
     path: '/',
     element: <Navigate to="/projects" replace />,
@@ -49,3 +49,5 @@ export const router = createBrowserRouter([
     ],
   },
 ]);
+
+export default router;

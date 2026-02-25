@@ -2,28 +2,22 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { EMAIL_REGEX } from '../../../constants/regex';
-import type { LoginFormError, LoginFormState } from '../types/auth-types';
+import type { LoginFormValues, LoginFormErrors } from '../types/auth-types';
 
 export function useLogin() {
-  const [form, setForm] = useState<LoginFormState>({
+  const [form, setForm] = useState<LoginFormValues>({
     email: '',
     password: '',
   });
 
-  const [errors, setError] = useState<LoginFormError>({
-    email: '',
-    password: '',
-  });
+  const [errors, setError] = useState<LoginFormErrors>({});
 
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
 
   const navigate = useNavigate();
 
   const validate = () => {
-    const newError = {
-      email: '',
-      password: '',
-    };
+    const newError: LoginFormErrors = {};
 
     if (!form.email) {
       newError.email = 'Email is required';
@@ -39,8 +33,9 @@ export function useLogin() {
 
     setError(newError);
 
-    return !newError.email && !newError.password;
+    return Object.keys(newError).length === 0;
   };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({
       ...prev,
