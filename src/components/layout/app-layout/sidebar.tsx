@@ -5,7 +5,6 @@ import {
   ListItemButton,
   ListItemText,
   Toolbar,
-  Typography,
 } from '@mui/material';
 import { NavLink } from 'react-router-dom';
 
@@ -21,33 +20,15 @@ export default function Sidebar({ mobileOpen, onToggle }: Props) {
     <Box>
       <Toolbar sx={{ minHeight: 64 }} />
 
-      <Box px={2} py={1}>
-        <Typography variant="caption" color="text.secondary">
-          MAIN
-        </Typography>
-      </Box>
-
-      <List sx={{ px: 1 }}>
+      <List sx={{ p: 0 }}>
         <NavLink to="/projects" style={{ textDecoration: 'none' }}>
           {({ isActive }) => (
             <ListItemButton
               sx={{
-                borderRadius: 1,
-                mb: 0.5,
-                px: 2,
-                py: 1,
                 bgcolor: isActive ? 'action.selected' : 'transparent',
-                '&:hover': {
-                  bgcolor: 'action.hover',
-                },
               }}
             >
-              <ListItemText
-                primary="Projects"
-                primaryTypographyProps={{
-                  fontWeight: isActive ? 600 : 400,
-                }}
-              />
+              <ListItemText primary="Projects" />
             </ListItemButton>
           )}
         </NavLink>
@@ -63,6 +44,7 @@ export default function Sidebar({ mobileOpen, onToggle }: Props) {
         flexShrink: { md: 0 },
       }}
     >
+      {/* Mobile */}
       <Drawer
         variant="temporary"
         open={mobileOpen}
@@ -70,14 +52,13 @@ export default function Sidebar({ mobileOpen, onToggle }: Props) {
         ModalProps={{ keepMounted: true }}
         sx={{
           display: { xs: 'block', md: 'none' },
-          '& .MuiDrawer-paper': {
-            width: drawerWidth,
-          },
+          '& .MuiDrawer-paper': { width: drawerWidth },
         }}
       >
         {content}
       </Drawer>
 
+      {/* Desktop */}
       <Drawer
         variant="permanent"
         open
@@ -86,7 +67,6 @@ export default function Sidebar({ mobileOpen, onToggle }: Props) {
           '& .MuiDrawer-paper': {
             width: drawerWidth,
             boxSizing: 'border-box',
-            borderRight: '1px solid #eee', // subtle separation
           },
         }}
       >

@@ -1,23 +1,28 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
-import { ROUTES } from "../constants/routes"
-
-import LoginPage from '../features/login/pages';
+import LoginPage from '../features/auth/pages/login-page';
 import AppLayout from '../components/layout/app-layout';
 
 import RequireAuth from './require-auth';
 import RequireRole from './require-role';
 
-const router = createBrowserRouter([
+const ProjectsPage = () => <div>Projects</div>;
+const AdminPage = () => <div>Admin Only</div>;
+
+export const router = createBrowserRouter([
   {
     path: '/',
-    element: <Navigate to={ROUTES.APP.PROJECTS} replace />,
+    element: <Navigate to="/projects" replace />,
   },
 
   // Public
   {
-    path: ROUTES.AUTH.LOGIN,
-    element: <LoginPage />,
+    path: '/login',
+    element: localStorage.getItem('user') ? (
+      <Navigate to="/projects" replace />
+    ) : (
+      <LoginPage />
+    ),
   },
 
   // Protected
@@ -28,18 +33,14 @@ const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           {
-            path: ROUTES.APP.PROJECTS,
-            element: <div>Projects Page</div>,
+            path: '/projects',
+            element: <ProjectsPage />,
           },
           {
-            path: `${ROUTES.APP.PROJECTS}/:projectId`,
-            element: <div>Project Details Page</div>, // placeholder
-          },
-          {
-            path: ROUTES.ADMIN.ROOT,
+            path: '/admin',
             element: (
               <RequireRole allowedRoles={['admin']}>
-                <div>Admin Page</div>
+                <AdminPage />
               </RequireRole>
             ),
           },
@@ -48,5 +49,3 @@ const router = createBrowserRouter([
     ],
   },
 ]);
-
-export default router;
