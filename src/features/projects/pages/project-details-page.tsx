@@ -185,7 +185,11 @@ function DroppableColumn({
   const isValid =
     activeTask && allowedTransitions[activeTask.status].includes(col.id);
 
-  const bgColor = isOver ? (isValid ? '#d1fae5' : '#fee2e2') : '#ebecf0';
+  const bgColor = isOver
+    ? isValid
+      ? 'success.light'
+      : 'error.light'
+    : 'grey.100';
 
   return (
     <Box
@@ -244,7 +248,7 @@ function DraggableTask({ task, index }: { task: Task; index: number }) {
       sx={{
         p: 1.5,
         borderRadius: 2,
-        backgroundColor: '#fff',
+        backgroundColor: 'background.paper',
         boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
         transform: transform
           ? `translate(${transform.x}px, ${transform.y}px)`
