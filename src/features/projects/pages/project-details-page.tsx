@@ -1,25 +1,11 @@
 import { useState } from 'react';
-import {
-  Box,
-  Typography,
-  Paper,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-} from '@mui/material';
+import { Box, Typography, Paper, Button, TextField } from '@mui/material';
 import { useParams } from 'react-router-dom';
-import {
-  DndContext,
-  closestCenter,
-  useDraggable,
-  useDroppable,
-} from '@dnd-kit/core';
-import type { DragEndEvent } from '@dnd-kit/core';
+import { useDraggable, useDroppable, type DragEndEvent } from '@dnd-kit/core';
 
 import PageContainer from '../../../components/common/page-container';
+import AppDndContext from '../../../components/common/dnd-context';
+import AppDialog from '../../../components/common/app-dialog';
 
 type Status = 'todo' | 'in_progress' | 'review' | 'done';
 
@@ -68,21 +54,20 @@ export default function ProjectDetailsPage() {
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-
     if (!over) return;
 
     const taskId = active.id as string;
     const newStatus = over.id as Status;
 
     setTasks((prev) =>
-      prev.map((t) => {
-        if (t.id !== taskId) return t;
+      prev.map((task) => {
+        if (task.id !== taskId) return task;
 
-        if (!allowedTransitions[t.status].includes(newStatus)) {
-          return t;
+        if (!allowedTransitions[task.status].includes(newStatus)) {
+          return task;
         }
 
-        return { ...t, status: newStatus };
+        return { ...task, status: newStatus };
       }),
     );
   };
@@ -93,9 +78,8 @@ export default function ProjectDetailsPage() {
         Project ID: {projectId}
       </Typography>
 
-      <DndContext
-        collisionDetection={closestCenter}
-        onDragStart={(event) => setActiveId(event.active.id as string)}
+      <AppDndContext
+        onDragStart={(id) => setActiveId(id)}
         onDragEnd={(event) => {
           handleDragEnd(event);
           setActiveId(null);
@@ -110,7 +94,7 @@ export default function ProjectDetailsPage() {
           }}
         >
           {columns.map((col) => {
-            const columnTasks = tasks.filter((t) => t.status === col.id);
+            const columnTasks = tasks.filter((task) => task.status === col.id);
 
             return (
               <DroppableColumn
@@ -130,37 +114,33 @@ export default function ProjectDetailsPage() {
             );
           })}
         </Box>
-      </DndContext>
+      </AppDndContext>
 
-      <Dialog
+      <AppDialog
         open={open}
         onClose={() => setOpen(false)}
-        fullWidth
-        maxWidth="sm"
+        title="Create Task"
+        actions={
+          <>
+            <Button onClick={() => setOpen(false)}>Cancel</Button>
+            <Button
+              variant="contained"
+              onClick={handleCreate}
+              disabled={!taskTitle.trim()}
+            >
+              Create
+            </Button>
+          </>
+        }
       >
-        <DialogTitle>Create Task</DialogTitle>
-
-        <DialogContent>
-          <TextField
-            label="Task Title"
-            fullWidth
-            value={taskTitle}
-            onChange={(e) => setTaskTitle(e.target.value)}
-            sx={{ mt: 1 }}
-          />
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={handleCreate}
-            disabled={!taskTitle.trim()}
-          >
-            Create
-          </Button>
-        </DialogActions>
-      </Dialog>
+        <TextField
+          label="Task Title"
+          fullWidth
+          value={taskTitle}
+          onChange={(e) => setTaskTitle(e.target.value)}
+          sx={{ mt: 1 }}
+        />
+      </AppDialog>
     </PageContainer>
   );
 }
@@ -180,7 +160,7 @@ function DroppableColumn({
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: col.id });
 
-  const activeTask = tasks.find((t) => t.id === activeId);
+  const activeTask = tasks.find((task) => task.id === activeId);
 
   const isValid =
     activeTask && allowedTransitions[activeTask.status].includes(col.id);
