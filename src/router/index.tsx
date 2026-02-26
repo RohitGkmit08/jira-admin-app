@@ -3,7 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import LoginPage from '../features/login/pages';
 import ProjectsPage from '../features/projects/pages/projects-page';
 import ProjectDetailsPage from '../features/projects/pages/project-details-page';
-import AppLayout from '../components/layout/app-layout';
+import AppLayout from '../components/layout';
 
 import RequireAuth from './require-auth';
 import RequireRole from './require-role';
