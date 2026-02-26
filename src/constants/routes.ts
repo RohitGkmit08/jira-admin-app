@@ -11,3 +11,8 @@ export const ROUTES = {
     ROOT: '/admin',
   },
 } as const;
+
+export const routeHelpers = {
+  projectDetails: (id: string) =>
+    ROUTES.APP.PROJECT_DETAILS.replace(':projectId', id),
+};
