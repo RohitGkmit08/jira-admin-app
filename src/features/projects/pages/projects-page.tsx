@@ -12,6 +12,8 @@ import {
   TextField,
   Divider,
 } from '@mui/material';
+import FolderOpenIcon from '@mui/icons-material/FolderOpen';
+import AddIcon from '@mui/icons-material/Add';
 
 import PageContainer from '../../../components/common/page-container';
 
@@ -47,7 +49,6 @@ export default function ProjectsPage() {
 
   return (
     <PageContainer title="Projects">
-      {/* HEADER */}
       <Box
         display="flex"
         justifyContent="space-between"
@@ -63,21 +64,25 @@ export default function ProjectsPage() {
           </Typography>
         </Box>
 
-        <Button variant="contained" onClick={handleOpen} sx={{ height: 40 }}>
+        <Button
+          variant="contained"
+          onClick={handleOpen}
+          startIcon={<AddIcon />}
+          sx={{ height: 40, textTransform: 'none' }}
+        >
           Create Project
         </Button>
       </Box>
 
       <Divider sx={{ mb: 3 }} />
 
-      {/* STATS */}
       <Box display="flex" gap={2} flexWrap="wrap" mb={3}>
         <Paper
+          variant="outlined"
           sx={{
             p: 2,
-            minWidth: 200,
-            border: '1px solid #e5e7eb',
-            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+            minWidth: 160,
+            borderRadius: '8px',
           }}
         >
           <Typography variant="body2" color="text.secondary">
@@ -89,11 +94,11 @@ export default function ProjectsPage() {
         </Paper>
 
         <Paper
+          variant="outlined"
           sx={{
             p: 2,
-            minWidth: 200,
-            border: '1px solid #e5e7eb',
-            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+            minWidth: 160,
+            borderRadius: '8px',
           }}
         >
           <Typography variant="body2" color="text.secondary">
@@ -105,11 +110,28 @@ export default function ProjectsPage() {
         </Paper>
       </Box>
 
-      {/* PROJECT LIST */}
-      <Paper sx={{ p: 2, maxHeight: 400, overflowY: 'auto' }}>
+      <Paper
+        variant="outlined"
+        sx={{
+          borderRadius: '8px',
+          overflow: 'hidden',
+        }}
+      >
         {projects.length === 0 ? (
-          <Box textAlign="center" py={4}>
-            <Typography color="text.secondary" mb={1}>
+          /* EMPTY STATE */
+          <Box
+            sx={{
+              py: 6,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 1,
+            }}
+          >
+            <FolderOpenIcon
+              sx={{ fontSize: 40, color: 'text.secondary', opacity: 0.4 }}
+            />
+            <Typography color="text.secondary" fontWeight={500}>
               No projects yet
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -117,35 +139,46 @@ export default function ProjectsPage() {
             </Typography>
           </Box>
         ) : (
-          <Box display="flex" flexDirection="column" gap={1}>
+          <Box>
             {projects.map((project, index) => (
-              <Box
-                key={project.id}
-                onClick={() => navigate(`/projects/${project.id}`)}
-                sx={{
-                  p: 1.5,
-                  borderRadius: 1,
-                  border: '1px solid #e5e7eb',
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    backgroundColor: '#f9fafb',
-                    borderColor: '#ddd',
+              <Box key={project.id}>
+                <Box
+                  onClick={() => navigate(`/projects/${project.id}`)}
+                  sx={{
+                    px: 2,
+                    py: 1.5,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.5,
                     cursor: 'pointer',
-                    transform: 'translateY(-1px)',
-                  },
-                }}
-              >
-                <Typography fontWeight={500}>
-                  <span style={{ color: '#6b7280' }}>{index + 1}.</span>{' '}
-                  {project.name}
-                </Typography>
+                    '&:hover': {
+                      backgroundColor: 'action.hover',
+                    },
+                  }}
+                >
+                  <FolderOpenIcon
+                    fontSize="small"
+                    sx={{ color: 'primary.main' }}
+                  />
+                  <Typography fontWeight={500} fontSize={14}>
+                    {project.name}
+                  </Typography>
+                  <Typography
+                    fontSize={12}
+                    color="text.secondary"
+                    sx={{ ml: 'auto' }}
+                  >
+                    #{index + 1}
+                  </Typography>
+                </Box>
+
+                {index < projects.length - 1 && <Divider />}
               </Box>
             ))}
           </Box>
         )}
       </Paper>
 
-      {/* MODAL */}
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
         <DialogTitle>Create Project</DialogTitle>
 
@@ -155,6 +188,7 @@ export default function ProjectsPage() {
             fullWidth
             value={projectName}
             onChange={(e) => setProjectName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
             sx={{ mt: 1 }}
             autoFocus
           />

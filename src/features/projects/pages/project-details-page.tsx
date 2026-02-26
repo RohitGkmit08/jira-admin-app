@@ -1,36 +1,38 @@
 import { useState } from 'react';
-import { Box, Typography, Paper, Button, TextField } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Paper,
+  Button,
+  TextField,
+  useTheme,
+} from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { useDraggable, useDroppable, type DragEndEvent } from '@dnd-kit/core';
+import { Children } from 'react';
 
 import PageContainer from '../../../components/common/page-container';
-import AppDndContext from '../../../components/common/dnd-context';
 import AppDialog from '../../../components/common/app-dialog';
+import AppDndContext from '../../../components/common/dnd-context';
+import { COLORS } from '../../../constants/theme';
+import {
+  COLUMNS,
+  ALLOWED_TRANSITIONS,
+  type Task,
+  type Status,
+} from '../constants';
 
-type Status = 'todo' | 'in_progress' | 'review' | 'done';
-
-type Task = {
-  id: string;
-  title: string;
-  status: Status;
-};
-
-const columns: { id: Status; title: string }[] = [
-  { id: 'todo', title: 'Todo' },
-  { id: 'in_progress', title: 'In Progress' },
-  { id: 'review', title: 'Review' },
-  { id: 'done', title: 'Done' },
-];
-
-const allowedTransitions: Record<Status, Status[]> = {
-  todo: ['in_progress'],
-  in_progress: ['review'],
-  review: ['in_progress', 'done'],
-  done: [],
+const STATUS_ACCENT: Record<Status, string> = {
+  todo: '#4C9AFF',
+  in_progress: '#FF991F',
+  review: '#6554C0',
+  done: '#36B37E',
 };
 
 export default function ProjectDetailsPage() {
   const { projectId } = useParams();
+  const muiTheme = useTheme();
+  const theme = muiTheme.palette.mode === 'dark' ? COLORS.dark : COLORS.light;
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [open, setOpen] = useState(false);
@@ -62,11 +64,7 @@ export default function ProjectDetailsPage() {
     setTasks((prev) =>
       prev.map((task) => {
         if (task.id !== taskId) return task;
-
-        if (!allowedTransitions[task.status].includes(newStatus)) {
-          return task;
-        }
-
+        if (!ALLOWED_TRANSITIONS[task.status].includes(newStatus)) return task;
         return { ...task, status: newStatus };
       }),
     );
@@ -74,8 +72,16 @@ export default function ProjectDetailsPage() {
 
   return (
     <PageContainer title="Project Board">
-      <Typography mb={3} variant="h6" fontWeight={700}>
-        Project ID: {projectId}
+      {/* PROJECT ID */}
+      <Typography
+        sx={{
+          fontSize: 12,
+          fontWeight: 600,
+          color: theme.textSecondary,
+          mb: 3,
+        }}
+      >
+        Project: {projectId}
       </Typography>
 
       <AppDndContext
@@ -89,11 +95,10 @@ export default function ProjectDetailsPage() {
           sx={{
             display: 'grid',
             gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: 3,
-            height: '72vh',
+            gap: 2,
           }}
         >
-          {columns.map((col) => {
+          {COLUMNS.map((col) => {
             const columnTasks = tasks.filter((task) => task.status === col.id);
 
             return (
@@ -102,13 +107,19 @@ export default function ProjectDetailsPage() {
                 col={col}
                 tasks={tasks}
                 activeId={activeId}
+                theme={theme}
                 onAddTask={() => {
                   setSelectedStatus(col.id);
                   setOpen(true);
                 }}
               >
                 {columnTasks.map((task, index) => (
-                  <DraggableTask key={task.id} task={task} index={index} />
+                  <Box
+                    key={task.id}
+                    sx={{ opacity: activeId === task.id ? 0 : 1 }}
+                  >
+                    <DraggableTask task={task} index={index} theme={theme} />
+                  </Box>
                 ))}
               </DroppableColumn>
             );
@@ -119,7 +130,7 @@ export default function ProjectDetailsPage() {
       <AppDialog
         open={open}
         onClose={() => setOpen(false)}
-        title="Create Task"
+        title={`Add task to ${COLUMNS.find((c) => c.id === selectedStatus)?.title}`}
         actions={
           <>
             <Button onClick={() => setOpen(false)}>Cancel</Button>
@@ -138,12 +149,23 @@ export default function ProjectDetailsPage() {
           fullWidth
           value={taskTitle}
           onChange={(e) => setTaskTitle(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
           sx={{ mt: 1 }}
+          autoFocus
         />
       </AppDialog>
     </PageContainer>
   );
 }
+
+type DroppableColumnProps = {
+  col: { id: Status; title: string };
+  tasks: Task[];
+  activeId: string | null;
+  children: React.ReactNode;
+  onAddTask: () => void;
+  theme: typeof COLORS.light;
+};
 
 function DroppableColumn({
   col,
@@ -151,25 +173,20 @@ function DroppableColumn({
   activeId,
   children,
   onAddTask,
-}: {
-  col: { id: Status; title: string };
-  tasks: Task[];
-  activeId: string | null;
-  children: React.ReactNode;
-  onAddTask: () => void;
-}) {
+  theme,
+}: DroppableColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: col.id });
 
   const activeTask = tasks.find((task) => task.id === activeId);
 
-  const isValid =
-    activeTask && allowedTransitions[activeTask.status].includes(col.id);
+  let isValid = false;
+  if (activeTask) {
+    isValid = ALLOWED_TRANSITIONS[activeTask.status].includes(col.id);
+  }
 
-  const bgColor = isOver
-    ? isValid
-      ? 'success.light'
-      : 'error.light'
-    : 'grey.100';
+  const isDragOver = isOver && activeTask;
+  const accentColor = STATUS_ACCENT[col.id];
+  const columnTaskCount = tasks.filter((t) => t.status === col.id).length;
 
   return (
     <Box
@@ -177,48 +194,140 @@ function DroppableColumn({
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        backgroundColor: bgColor,
-        borderRadius: 2,
-        p: 1,
-        height: '100%',
-        transition: 'background-color 0.2s ease',
+        backgroundColor: theme.columnBg,
+        borderRadius: '8px',
+        border: `1px solid ${
+          isDragOver ? (isValid ? '#36B37E' : '#FF5630') : theme.border
+        }`,
+        borderTop: `3px solid ${accentColor}`,
+        transition: 'border-color 0.15s ease',
+        minWidth: 0,
       }}
     >
-      <Typography px={1} py={1} fontWeight={600} fontSize={12}>
-        {col.title.toUpperCase()}
-      </Typography>
+      <Box
+        sx={{
+          px: 2,
+          pt: 2,
+          pb: 1.5,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+        }}
+      >
+        <Typography
+          sx={{
+            fontSize: 12,
+            fontWeight: 700,
+            color: theme.textSecondary,
+            textTransform: 'uppercase',
+          }}
+        >
+          {col.title}
+        </Typography>
 
-      {col.id !== 'done' && (
-        <Box px={1} pb={1}>
-          <Button
-            size="small"
-            sx={{ textTransform: 'none', fontSize: 12 }}
-            onClick={onAddTask}
+        <Box
+          sx={{
+            backgroundColor: theme.border,
+            borderRadius: '10px',
+            px: 1,
+            minWidth: 20,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: theme.textSecondary,
+            }}
           >
-            + Add Task
-          </Button>
+            {columnTaskCount}
+          </Typography>
         </Box>
-      )}
+      </Box>
+
+      <Box sx={{ height: '1px', backgroundColor: theme.border, mx: 2 }} />
 
       <Box
         sx={{
-          flexGrow: 1,
+          px: 1.5,
+          py: 1.5,
           display: 'flex',
           flexDirection: 'column',
-          gap: 1,
-          px: 1,
+          gap: 1.5,
+          minHeight: 120,
+          overflowY: 'auto',
         }}
       >
-        {children}
+        {Children.count(children) === 0 ? (
+          <Box
+            sx={{
+              border: `1px dashed ${theme.border}`,
+              borderRadius: '6px',
+              py: 4,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: 12,
+                color: theme.textSecondary,
+              }}
+            >
+              No tasks
+            </Typography>
+          </Box>
+        ) : (
+          children
+        )}
       </Box>
+
+      {col.id !== 'done' && (
+        <Box sx={{ px: 1.5, pb: 1.5 }}>
+          <Box
+            onClick={onAddTask}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5,
+              px: 1,
+              py: 0.8,
+              borderRadius: '6px',
+              cursor: 'pointer',
+              color: theme.textSecondary,
+              '&:hover': {
+                backgroundColor: theme.border,
+                color: theme.textPrimary,
+              },
+            }}
+          >
+            <Typography sx={{ fontSize: 16, fontWeight: 400 }}>+</Typography>
+            <Typography sx={{ fontSize: 12, fontWeight: 500 }}>
+              Add task
+            </Typography>
+          </Box>
+        </Box>
+      )}
     </Box>
   );
 }
 
-function DraggableTask({ task, index }: { task: Task; index: number }) {
+type DraggableTaskProps = {
+  task: Task;
+  index: number;
+  theme: typeof COLORS.light;
+};
+
+function DraggableTask({ task, index, theme }: DraggableTaskProps) {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: task.id,
   });
+
+  const accentColor = STATUS_ACCENT[task.status];
 
   return (
     <Paper
@@ -227,18 +336,63 @@ function DraggableTask({ task, index }: { task: Task; index: number }) {
       {...attributes}
       sx={{
         p: 1.5,
-        borderRadius: 2,
-        backgroundColor: 'background.paper',
-        boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
+        borderRadius: '6px',
+        backgroundColor: theme.surface,
+        border: `1px solid ${theme.border}`,
+        borderLeft: `3px solid ${accentColor}`,
+        boxShadow: 'none',
         transform: transform
           ? `translate(${transform.x}px, ${transform.y}px)`
           : undefined,
         cursor: 'grab',
+        '&:hover': {
+          boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
+          borderColor: accentColor,
+        },
+        '&:active': {
+          cursor: 'grabbing',
+        },
       }}
     >
-      <Typography fontSize={14} fontWeight={500}>
-        <span style={{ color: '#6b7280' }}>{index + 1}.</span> {task.title}
+      <Typography
+        sx={{
+          fontSize: 13,
+          fontWeight: 500,
+          color: theme.textPrimary,
+          lineHeight: 1.4,
+          mb: 1.5,
+        }}
+      >
+        {task.title}
       </Typography>
+
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Typography
+          sx={{
+            fontSize: 11,
+            fontWeight: 600,
+            color: theme.textSecondary,
+          }}
+        >
+          PROJ-{index + 1}
+        </Typography>
+
+        {/* STATUS DOT */}
+        <Box
+          sx={{
+            width: 8,
+            height: 8,
+            borderRadius: '50%',
+            backgroundColor: accentColor,
+          }}
+        />
+      </Box>
     </Paper>
   );
 }

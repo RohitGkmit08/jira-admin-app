@@ -34,8 +34,19 @@ export default function LoginForm() {
           helperText={errors.password}
         />
 
-        <Button type="submit" variant="contained" disabled={loading}>
-          {loading ? 'Logging in...' : 'Login'}
+        <Button
+          type="submit"
+          variant="contained"
+          disabled={loading}
+          fullWidth
+          sx={{
+            mt: 1,
+            py: 1.2,
+            textTransform: 'none',
+            fontWeight: 600,
+          }}
+        >
+          {loading ? 'Signing in...' : 'Sign in'}
         </Button>
       </Stack>
     </form>

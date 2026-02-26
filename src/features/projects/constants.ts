@@ -6,12 +6,12 @@ export type Task = {
   status: Status;
 };
 
-export const COLUMNS = [
+export const COLUMNS: { id: Status; title: string }[] = [
   { id: 'todo', title: 'Todo' },
   { id: 'in_progress', title: 'In Progress' },
   { id: 'review', title: 'Review' },
   { id: 'done', title: 'Done' },
-] as const;
+];
 
 export const ALLOWED_TRANSITIONS: Record<Status, Status[]> = {
   todo: ['in_progress'],

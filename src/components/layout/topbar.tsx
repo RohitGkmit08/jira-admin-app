@@ -3,11 +3,16 @@ import {
   Toolbar,
   IconButton,
   Typography,
-  Button,
   Box,
+  Tooltip,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import LightModeIcon from '@mui/icons-material/LightMode';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import LogoutIcon from '@mui/icons-material/Logout';
 import { useNavigate } from 'react-router-dom';
+
+import { useColorMode } from '../../providers';
 
 type Props = {
   onMenuClick: () => void;
@@ -15,6 +20,7 @@ type Props = {
 
 export default function Topbar({ onMenuClick }: Props) {
   const navigate = useNavigate();
+  const { mode, toggleMode } = useColorMode();
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -26,15 +32,16 @@ export default function Topbar({ onMenuClick }: Props) {
   return (
     <AppBar
       position="fixed"
-      color="default"
-      elevation={1}
+      elevation={0}
       sx={{
         zIndex: (theme) => theme.zIndex.drawer + 1,
-        borderBottom: '1px solid #eee',
+        borderBottom: '1px solid',
+        borderColor: 'divider',
+        backgroundColor: 'background.paper',
+        color: 'text.primary',
       }}
     >
       <Toolbar sx={{ minHeight: 64 }}>
-        {/* MOBILE MENU */}
         <IconButton
           edge="start"
           onClick={onMenuClick}
@@ -43,22 +50,49 @@ export default function Topbar({ onMenuClick }: Props) {
           <MenuIcon />
         </IconButton>
 
-        {/* APP TITLE */}
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: 700,
+            fontSize: 18,
+          }}
+        >
           Jira Admin
         </Typography>
 
-        {/* RIGHT SIDE */}
-        <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 2 }}>
-          {/* USER INFO */}
-          <Typography variant="body2" color="text.secondary">
+        <Box
+          sx={{
+            ml: 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+          }}
+        >
+          <Typography
+            variant="body2"
+            sx={{
+              color: 'text.secondary',
+              fontSize: 13,
+            }}
+          >
             {user?.role || 'User'}
           </Typography>
 
-          {/* LOGOUT */}
-          <Button onClick={handleLogout} variant="outlined" size="small">
-            Logout
-          </Button>
+          <Tooltip title={mode === 'light' ? 'Dark mode' : 'Light mode'}>
+            <IconButton onClick={toggleMode} size="small">
+              {mode === 'light' ? (
+                <DarkModeIcon fontSize="small" />
+              ) : (
+                <LightModeIcon fontSize="small" />
+              )}
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Logout">
+            <IconButton onClick={handleLogout} size="small">
+              <LogoutIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
         </Box>
       </Toolbar>
     </AppBar>
