@@ -1,0 +1,21 @@
+export type Status = 'todo' | 'in_progress' | 'review' | 'done';
+
+export type Task = {
+  id: string;
+  title: string;
+  status: Status;
+};
+
+export const COLUMNS = [
+  { id: 'todo', title: 'Todo' },
+  { id: 'in_progress', title: 'In Progress' },
+  { id: 'review', title: 'Review' },
+  { id: 'done', title: 'Done' },
+] as const;
+
+export const ALLOWED_TRANSITIONS: Record<Status, Status[]> = {
+  todo: ['in_progress'],
+  in_progress: ['review'],
+  review: ['in_progress', 'done'],
+  done: [],
+};
