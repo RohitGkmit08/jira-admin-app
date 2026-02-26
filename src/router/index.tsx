@@ -1,21 +1,21 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 
-// Temporary placeholders (these will be replaced later)
-const LoginPage = () => <div>Login Page</div>;
-const ProjectsPage = () => <div>Projects Page</div>;
-const BoardPage = () => <div>Board Page</div>;
+import { ROUTES } from '../constants/routes';
+import LoginPage from '../features/login/pages';
 
-export const router = createBrowserRouter([
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Navigate to={ROUTES.AUTH.LOGIN} replace />,
+  },
   {
     path: '/login',
     element: <LoginPage />,
   },
   {
     path: '/projects',
-    element: <ProjectsPage />,
-  },
-  {
-    path: '/projects/:id',
-    element: <BoardPage />,
+    element: <div>Projects Page</div>,
   },
 ]);
+
+export default router;
