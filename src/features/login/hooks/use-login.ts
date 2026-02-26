@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { EMAIL_REGEX } from '../../../constants/regex';
-import type { LoginFormValues, LoginFormErrors } from '../types/auth-types';
+import type { LoginFormValues, LoginFormErrors } from '../types';
 
 export function useLogin() {
   const [form, setForm] = useState<LoginFormValues>({
