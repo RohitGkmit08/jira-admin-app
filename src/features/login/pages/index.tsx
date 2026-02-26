@@ -1,7 +1,6 @@
 import { Box, Paper, Typography } from '@mui/material';
 
 import LoginForm from '../components/login-form';
-
 export default function LoginPage() {
   return (
     <Box
