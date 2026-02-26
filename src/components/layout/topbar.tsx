@@ -1,30 +1,29 @@
 import { AppBar, Toolbar, IconButton, Typography, Button } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import { useNavigate } from 'react-router-dom';
+
+import { ROUTES } from '../../constants/routes';
 
 type Props = {
   onMenuClick: () => void;
 };
 
 export default function Topbar({ onMenuClick }: Props) {
+  const navigate = useNavigate();
+
   const handleLogout = () => {
     localStorage.removeItem('user');
-    window.location.href = '/login';
+    navigate(ROUTES.AUTH.LOGIN, { replace: true });
   };
 
   return (
-    <AppBar position="static" color="default" elevation={1}>
+    <AppBar position="static">
       <Toolbar>
-        <IconButton
-          edge="start"
-          onClick={onMenuClick}
-          sx={{ display: { md: 'none' } }}
-        >
+        <IconButton onClick={onMenuClick}>
           <MenuIcon />
         </IconButton>
 
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          Jira Admin
-        </Typography>
+        <Typography sx={{ flexGrow: 1 }}>Dashboard</Typography>
 
         <Button onClick={handleLogout}>Logout</Button>
       </Toolbar>

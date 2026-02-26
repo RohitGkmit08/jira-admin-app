@@ -1,11 +1,12 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
+import { ROUTES } from '../constants/routes';
 import LoginPage from '../features/login/pages';
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Navigate to="/login" replace />,
+    element: <Navigate to={ROUTES.AUTH.LOGIN} replace />,
   },
   {
     path: '/login',
