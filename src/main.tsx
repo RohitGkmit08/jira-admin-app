@@ -2,12 +2,12 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 
 import App from './App';
-import { AppProviders } from './providers';
+import { ColorModeProvider } from './providers';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <AppProviders>
+    <ColorModeProvider>
       <App />
-    </AppProviders>
+    </ColorModeProvider>
   </React.StrictMode>,
 );

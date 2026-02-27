@@ -2,8 +2,9 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import LoginPage from '../features/login/pages';
 import ProjectsPage from '../features/projects/pages/projects-page';
-import ProjectDetailsPage from '../features/projects/pages/project-details-page';
+import { ProjectDetailsPage } from '../features/projects';
 import AppLayout from '../components/layout';
+import { ROUTES } from '../constants/routes';
 
 import RequireAuth from './require-auth';
 import RequireRole from './require-role';
@@ -12,12 +13,12 @@ const AdminPage = () => <div>Admin Only</div>;
 
 export const router = createBrowserRouter([
   {
-    path: '/',
-    element: <Navigate to="/projects" replace />,
+    path: ROUTES.APP.ROOT,
+    element: <Navigate to={ROUTES.APP.PROJECTS} replace />,
   },
 
   {
-    path: '/login',
+    path: ROUTES.AUTH.LOGIN,
     element: <LoginPage />,
   },
 
@@ -28,15 +29,15 @@ export const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           {
-            path: '/projects',
+            path: ROUTES.APP.PROJECTS,
             element: <ProjectsPage />,
           },
           {
-            path: '/projects/:projectId',
+            path: ROUTES.APP.PROJECT_DETAILS,
             element: <ProjectDetailsPage />,
           },
           {
-            path: '/admin',
+            path: ROUTES.ADMIN.ROOT,
             element: (
               <RequireRole allowedRoles={['admin']}>
                 <AdminPage />

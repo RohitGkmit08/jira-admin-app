@@ -13,6 +13,7 @@ import FolderIcon from '@mui/icons-material/Folder';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 
+import { ROUTES } from '../../constants/routes';
 const drawerWidth = 240;
 
 type Props = {
@@ -24,7 +25,9 @@ export default function Sidebar({ mobileOpen, onToggle }: Props) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isProjectDetails = location.pathname.startsWith('/projects/');
+  const isProjectDetails = location.pathname.startsWith(
+    ROUTES.APP.PROJECTS + '/',
+  );
 
   const content = (
     <Box
@@ -52,7 +55,7 @@ export default function Sidebar({ mobileOpen, onToggle }: Props) {
         </Typography>
 
         <List sx={{ p: 0 }}>
-          <NavLink to="/projects" style={{ textDecoration: 'none' }}>
+          <NavLink to={ROUTES.APP.PROJECTS} style={{ textDecoration: 'none' }}>
             {({ isActive }) => (
               <ListItemButton
                 sx={{
@@ -91,7 +94,7 @@ export default function Sidebar({ mobileOpen, onToggle }: Props) {
           <Divider sx={{ mb: 1.5 }} />
 
           <ListItemButton
-            onClick={() => navigate('/projects')}
+            onClick={() => navigate(ROUTES.APP.PROJECTS)}
             sx={{
               borderRadius: '8px',
               color: 'text.secondary',

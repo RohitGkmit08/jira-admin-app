@@ -16,6 +16,7 @@ import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import AddIcon from '@mui/icons-material/Add';
 
 import PageContainer from '../../../components/common/page-container';
+import { routeHelpers } from '../../../constants/routes';
 
 type Project = {
   id: number;
@@ -143,7 +144,9 @@ export default function ProjectsPage() {
             {projects.map((project, index) => (
               <Box key={project.id}>
                 <Box
-                  onClick={() => navigate(`/projects/${project.id}`)}
+                  onClick={() =>
+                    navigate(routeHelpers.projectDetails(String(project.id)))
+                  }
                   sx={{
                     px: 2,
                     py: 1.5,

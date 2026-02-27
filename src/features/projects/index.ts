@@ -1,1 +1,2 @@
-export { default as ProjectDetailsPage } from './pages/project-details-page';
+export { default as ProjectDetailsPage } from './pages/details';
+export { default as ProjectsPage } from './pages';

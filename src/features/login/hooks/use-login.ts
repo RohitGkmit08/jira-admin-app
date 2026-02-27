@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { EMAIL_REGEX } from '../../../constants/regex';
 import type { LoginFormValues, LoginFormErrors } from '../types/auth-types';
+import { ROUTES } from '../../../constants/routes';
 
 export function useLogin() {
   const [form, setForm] = useState<LoginFormValues>({
@@ -52,7 +53,7 @@ export function useLogin() {
     const isValid = validate();
     if (!isValid) return;
     localStorage.setItem('user', JSON.stringify({ role: 'admin' }));
-    navigate('/projects');
+    navigate(ROUTES.APP.PROJECTS);
   };
 
   return {

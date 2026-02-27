@@ -24,7 +24,7 @@ type Props = {
   children: ReactNode;
 };
 
-export function AppProviders({ children }: Props) {
+export function ColorModeProvider({ children }: Props) {
   const [mode, setMode] = useState<PaletteMode>('light');
 
   const toggleMode = () => {

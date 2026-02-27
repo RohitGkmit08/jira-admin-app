@@ -12,6 +12,7 @@ import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useNavigate } from 'react-router-dom';
 
+import { ROUTES } from '../../constants/routes';
 import { useColorMode } from '../../providers';
 
 type Props = {
@@ -26,7 +27,7 @@ export default function Topbar({ onMenuClick }: Props) {
 
   const handleLogout = () => {
     localStorage.removeItem('user');
-    navigate('/login', { replace: true });
+    navigate(ROUTES.AUTH.LOGIN, { replace: true });
   };
 
   return (
