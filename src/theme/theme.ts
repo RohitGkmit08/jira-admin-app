@@ -6,12 +6,8 @@ export const getTheme = (mode: PaletteMode) =>
   createTheme({
     palette: {
       mode,
-      primary: {
-        main: '#1976d2',
-      },
-      secondary: {
-        main: '#9c27b0',
-      },
+      primary: { main: '#1976d2' },
+      secondary: { main: '#9c27b0' },
       background: {
         default: mode === 'light' ? '#f5f6fa' : '#1f1f1f',
         paper: mode === 'light' ? '#ffffff' : '#2c2c2c',
@@ -23,4 +19,14 @@ export const getTheme = (mode: PaletteMode) =>
       divider: mode === 'light' ? '#e0e0e0' : '#3a3a3a',
     },
     typography,
+    components: {
+      MuiDialog: {
+        styleOverrides: {
+          paper: {
+            backgroundColor:
+              mode === 'light' ? 'pallet.background?.paper' : '#2c2c2c',
+          },
+        },
+      },
+    },
   });

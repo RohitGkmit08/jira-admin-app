@@ -6,10 +6,16 @@ import {
   Button,
   TextField,
   useTheme,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { useDraggable, useDroppable, type DragEndEvent } from '@dnd-kit/core';
 import { Children } from 'react';
+import CloseIcon from '@mui/icons-material/Close';
 
 import PageContainer from '../../../components/common/page-container';
 import AppDialog from '../../../components/common/app-dialog';
@@ -33,6 +39,9 @@ export default function ProjectDetailsPage() {
   const [taskTitle, setTaskTitle] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<Status>('todo');
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [editedTitle, setEditedTitle] = useState('');
+  const [editedDescription, setEditedDescription] = useState('');
 
   const handleCreate = () => {
     if (!taskTitle.trim()) return;
@@ -41,11 +50,42 @@ export default function ProjectDetailsPage() {
       id: Date.now().toString(),
       title: taskTitle.trim(),
       status: selectedStatus,
+      description: '',
     };
 
     setTasks((prev) => [...prev, newTask]);
     setTaskTitle('');
     setOpen(false);
+  };
+
+  const handleDelete = (taskId: string) => {
+    setTasks((prev) => prev.filter((task) => task.id !== taskId));
+  };
+
+  const handleCardClick = (task: Task) => {
+    setSelectedTask(task);
+    setEditedTitle(task.title);
+    setEditedDescription(task.description);
+  };
+
+  const handleDetailClose = () => {
+    setSelectedTask(null);
+    setEditedTitle('');
+    setEditedDescription('');
+  };
+
+  const handleDetailSave = () => {
+    if (!selectedTask) return;
+
+    setTasks((prev) =>
+      prev.map((task) =>
+        task.id === selectedTask.id
+          ? { ...task, title: editedTitle, description: editedDescription }
+          : task,
+      ),
+    );
+
+    handleDetailClose();
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -66,7 +106,6 @@ export default function ProjectDetailsPage() {
 
   return (
     <PageContainer title="Project Board">
-      {/* PROJECT ID */}
       <Typography
         sx={{
           fontSize: 12,
@@ -89,7 +128,8 @@ export default function ProjectDetailsPage() {
           sx={{
             display: 'grid',
             gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: 2,
+            gap: 3,
+            alignItems: 'stretch',
           }}
         >
           {COLUMNS.map((col) => {
@@ -112,7 +152,13 @@ export default function ProjectDetailsPage() {
                     key={task.id}
                     sx={{ opacity: activeId === task.id ? 0 : 1 }}
                   >
-                    <DraggableTask task={task} index={index} theme={theme} />
+                    <DraggableTask
+                      task={task}
+                      index={index}
+                      theme={theme}
+                      onDelete={handleDelete}
+                      onClick={handleCardClick}
+                    />
                   </Box>
                 ))}
               </DroppableColumn>
@@ -124,7 +170,7 @@ export default function ProjectDetailsPage() {
       <AppDialog
         open={open}
         onClose={() => setOpen(false)}
-        title={`Add task to ${COLUMNS.find((c) => c.id === selectedStatus)?.title}`}
+        title={`Add task to ${COLUMNS.find((col) => col.id === selectedStatus)?.title}`}
         actions={
           <>
             <Button onClick={() => setOpen(false)}>Cancel</Button>
@@ -148,6 +194,87 @@ export default function ProjectDetailsPage() {
           autoFocus
         />
       </AppDialog>
+
+      <Dialog
+        open={Boolean(selectedTask)}
+        onClose={handleDetailClose}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: theme.textSecondary,
+              }}
+            >
+              PROJ-{tasks.indexOf(selectedTask!) + 1}
+            </Typography>
+
+            <Box
+              sx={{
+                backgroundColor: selectedTask
+                  ? STATUS_ACCENT[selectedTask.status]
+                  : 'transparent',
+                borderRadius: '4px',
+                px: 1,
+                py: 0.3,
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: 'common.white',
+                  textTransform: 'uppercase',
+                }}
+              >
+                {selectedTask?.status.replace('_', ' ')}
+              </Typography>
+            </Box>
+          </Box>
+        </DialogTitle>
+
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+            <TextField
+              label="Title"
+              fullWidth
+              value={editedTitle}
+              onChange={(e) => setEditedTitle(e.target.value)}
+            />
+
+            <TextField
+              label="Description"
+              fullWidth
+              multiline
+              rows={4}
+              value={editedDescription}
+              onChange={(e) => setEditedDescription(e.target.value)}
+              placeholder="Add a description..."
+            />
+          </Box>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={handleDetailClose}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={handleDetailSave}
+            disabled={!editedTitle.trim()}
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
     </PageContainer>
   );
 }
@@ -255,7 +382,7 @@ function DroppableColumn({
           display: 'flex',
           flexDirection: 'column',
           gap: 1.5,
-          minHeight: 120,
+          flexGrow: 1,
           overflowY: 'auto',
         }}
       >
@@ -270,12 +397,7 @@ function DroppableColumn({
               justifyContent: 'center',
             }}
           >
-            <Typography
-              sx={{
-                fontSize: 12,
-                color: theme.textSecondary,
-              }}
-            >
+            <Typography sx={{ fontSize: 12, color: theme.textSecondary }}>
               No tasks
             </Typography>
           </Box>
@@ -318,9 +440,17 @@ type DraggableTaskProps = {
   task: Task;
   index: number;
   theme: typeof COLORS.light;
+  onDelete: (taskId: string) => void;
+  onClick: (task: Task) => void;
 };
 
-function DraggableTask({ task, index, theme }: DraggableTaskProps) {
+function DraggableTask({
+  task,
+  index,
+  theme,
+  onDelete,
+  onClick,
+}: DraggableTaskProps) {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: task.id,
   });
@@ -330,7 +460,6 @@ function DraggableTask({ task, index, theme }: DraggableTaskProps) {
   return (
     <Paper
       ref={setNodeRef}
-      {...listeners}
       {...attributes}
       sx={{
         p: 1.5,
@@ -343,53 +472,85 @@ function DraggableTask({ task, index, theme }: DraggableTaskProps) {
           ? `translate(${transform.x}px, ${transform.y}px)`
           : undefined,
         cursor: 'grab',
+        position: 'relative',
         '&:hover': {
           boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
           borderColor: accentColor,
+        },
+        '&:hover .delete-btn': {
+          display: 'flex',
         },
         '&:active': {
           cursor: 'grabbing',
         },
       }}
     >
-      <Typography
+      {/* Delete Button */}
+      <IconButton
+        className="delete-btn"
+        size="small"
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete(task.id);
+        }}
         sx={{
-          fontSize: 13,
-          fontWeight: 500,
-          color: theme.textPrimary,
-          lineHeight: 1.4,
-          mb: 1.5,
+          display: 'none',
+          position: 'absolute',
+          top: 4,
+          right: 4,
+          width: 20,
+          height: 20,
+          color: theme.textSecondary,
+          '&:hover': {
+            color: theme.dragInvalid,
+            backgroundColor: 'transparent',
+          },
         }}
       >
-        {task.title}
-      </Typography>
+        <CloseIcon sx={{ fontSize: 14 }} />
+      </IconButton>
 
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
+      {/* Card content */}
+      <Box {...listeners} onClick={() => onClick(task)}>
         <Typography
           sx={{
-            fontSize: 11,
-            fontWeight: 600,
-            color: theme.textSecondary,
+            fontSize: 13,
+            fontWeight: 500,
+            color: theme.textPrimary,
+            lineHeight: 1.4,
+            mb: 1.5,
+            pr: 2,
           }}
         >
-          PROJ-{index + 1}
+          {task.title}
         </Typography>
 
-        {/* STATUS DOT */}
         <Box
           sx={{
-            width: 8,
-            height: 8,
-            borderRadius: '50%',
-            backgroundColor: accentColor,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
           }}
-        />
+        >
+          <Typography
+            sx={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: theme.textSecondary,
+            }}
+          >
+            PROJ-{index + 1}
+          </Typography>
+
+          <Box
+            sx={{
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              backgroundColor: accentColor,
+            }}
+          />
+        </Box>
       </Box>
     </Paper>
   );

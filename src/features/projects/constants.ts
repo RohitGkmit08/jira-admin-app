@@ -4,6 +4,7 @@ export type Task = {
   id: string;
   title: string;
   status: Status;
+  description: string;
 };
 
 export const COLUMNS: { id: Status; title: string }[] = [
