@@ -43,7 +43,7 @@ export default function LoginPage() {
               mb: 2,
             }}
           >
-            <LockOutlinedIcon sx={{ color: '#ffffff', fontSize: 22 }} />
+            <LockOutlinedIcon sx={{ color: 'common.white', fontSize: 22 }} />
           </Box>
 
           <Typography variant="h6" fontWeight={700}>
