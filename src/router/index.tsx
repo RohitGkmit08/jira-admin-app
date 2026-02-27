@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import LoginPage from '../features/login/pages';
-import ProjectsPage from '../features/projects/pages/projects-page';
+import { ProjectsPage } from '../features/projects';
 import { ProjectDetailsPage } from '../features/projects';
 import AppLayout from '../components/layout';
 import { ROUTES } from '../constants/routes';

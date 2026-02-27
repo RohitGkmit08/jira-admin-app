@@ -18,16 +18,10 @@ import { COLORS } from '../../../constants/theme';
 import {
   COLUMNS,
   ALLOWED_TRANSITIONS,
+  STATUS_ACCENT,
   type Task,
   type Status,
 } from '../constants';
-
-const STATUS_ACCENT: Record<Status, string> = {
-  todo: '#4C9AFF',
-  in_progress: '#FF991F',
-  review: '#6554C0',
-  done: '#36B37E',
-};
 
 export default function ProjectDetailsPage() {
   const { projectId } = useParams();
