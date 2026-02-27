@@ -9,12 +9,12 @@ export const COLORS = {
 
     columnBg: '#f1f2f4',
 
-    success: '#e3fcef',
-    error: '#ffebe6',
-
     primary: '#1976d2',
 
     shadow: '0 2px 6px rgba(0,0,0,0.08)',
+
+    dragValid: '#36B37E',
+    dragInvalid: '#FF5630',
   },
 
   dark: {
@@ -27,11 +27,11 @@ export const COLORS = {
 
     columnBg: '#2a2a2a',
 
-    success: '#1f3d2b',
-    error: '#4a1f1f',
-
     primary: '#90caf9',
 
     shadow: '0 2px 6px rgba(0,0,0,0.4)',
+
+    dragValid: '#36B37E',
+    dragInvalid: '#FF5630',
   },
 } as const;

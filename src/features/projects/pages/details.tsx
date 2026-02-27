@@ -197,7 +197,11 @@ function DroppableColumn({
         backgroundColor: theme.columnBg,
         borderRadius: '8px',
         border: `1px solid ${
-          isDragOver ? (isValid ? '#36B37E' : '#FF5630') : theme.border
+          isDragOver
+            ? isValid
+              ? theme.dragValid
+              : theme.dragInvalid
+            : theme.border
         }`,
         borderTop: `3px solid ${accentColor}`,
         transition: 'border-color 0.15s ease',
