@@ -1,9 +1,11 @@
 import { Navigate, Outlet } from 'react-router-dom';
 
-export default function RequireAuth() {
-  const user = localStorage.getItem('user');
+import { authService } from '../services/auth.service';
 
-  if (!user) {
+export default function RequireAuth() {
+  const isAuth = authService.isAuthenticated();
+
+  if (!isAuth) {
     return <Navigate to="/login" replace />;
   }
 
