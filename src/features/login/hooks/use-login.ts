@@ -1,66 +1,71 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { EMAIL_REGEX } from '../../../constants/regex';
-import type { LoginFormValues, LoginFormErrors } from '../types/auth-types';
-import { ROUTES } from '../../../constants/routes';
+import { loginUser } from '../../../api/auth.api';
+import { authService } from '../../../services/auth.service';
 
-export function useLogin() {
-  const [form, setForm] = useState<LoginFormValues>({
+type FormState = {
+  email: string;
+  password: string;
+};
+
+type FormErrors = {
+  email?: string;
+  password?: string;
+};
+
+export const useLogin = () => {
+  const navigate = useNavigate();
+
+  const [form, setForm] = useState<FormState>({
     email: '',
     password: '',
   });
 
-  const [errors, setError] = useState<LoginFormErrors>({});
-
-  const [loading] = useState(false);
-
-  const navigate = useNavigate();
-
-  const validate = () => {
-    const newError: LoginFormErrors = {};
-
-    if (!form.email) {
-      newError.email = 'Email is required';
-    } else if (!EMAIL_REGEX.test(form.email)) {
-      newError.email = 'Invalid email format';
-    }
-
-    if (!form.password) {
-      newError.password = 'Password is required';
-    } else if (form.password.length < 4) {
-      newError.password = 'Minimum 4 characters required';
-    }
-
-    setError(newError);
-
-    return Object.keys(newError).length === 0;
-  };
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
-
-    setError((prev) => ({
-      ...prev,
-      [e.target.name]: '',
-    }));
   };
 
-  const handleSubmit = () => {
-    const isValid = validate();
-    if (!isValid) return;
-    localStorage.setItem('user', JSON.stringify({ role: 'admin' }));
-    navigate(ROUTES.APP.PROJECTS);
+  const validate = () => {
+    const newErrors: FormErrors = {};
+
+    if (!form.email) newErrors.email = 'Email is required';
+    if (!form.password) newErrors.password = 'Password is required';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validate()) return;
+
+    try {
+      setLoading(true);
+
+      const res = await loginUser(form);
+
+      authService.setToken(res.token);
+      navigate('/projects');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error(err.message);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return {
     form,
     errors,
-    loading,
     handleChange,
     handleSubmit,
+    loading,
   };
-}
+};
