@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Paper,
@@ -15,11 +15,12 @@ import {
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import AddIcon from '@mui/icons-material/Add';
 
+import { createProject, getProjects } from '../../../services/project.service';
 import PageContainer from '../../../components/common/page-container';
 import { routeHelpers } from '../../../constants/routes';
 
 type Project = {
-  id: number;
+  _id: string;
   name: string;
 };
 
@@ -29,6 +30,20 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const navigate = useNavigate();
 
+  // Fetch post from backend
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const data = await getProjects();
+        setProjects(data);
+      } catch (err) {
+        console.error('Failed to fetch projects', err);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
   const handleOpen = () => setOpen(true);
 
   const handleClose = () => {
@@ -36,16 +51,20 @@ export default function ProjectsPage() {
     setProjectName('');
   };
 
-  const handleCreate = () => {
+  // Create project from api
+  const handleCreate = async () => {
     if (!projectName.trim()) return;
 
-    const newProject: Project = {
-      id: Date.now(),
-      name: projectName.trim(),
-    };
+    try {
+      const newProject = await createProject({
+        name: projectName.trim(),
+      });
 
-    setProjects((prev) => [...prev, newProject]);
-    handleClose();
+      setProjects((prev) => [newProject, ...prev]);
+      handleClose();
+    } catch (err) {
+      console.error('Failed to create project', err);
+    }
   };
 
   return (
@@ -78,14 +97,7 @@ export default function ProjectsPage() {
       <Divider sx={{ mb: 3 }} />
 
       <Box display="flex" gap={2} flexWrap="wrap" mb={3}>
-        <Paper
-          variant="outlined"
-          sx={{
-            p: 2,
-            minWidth: 160,
-            borderRadius: '8px',
-          }}
-        >
+        <Paper variant="outlined" sx={{ p: 2, minWidth: 160 }}>
           <Typography variant="body2" color="text.secondary">
             Total Projects
           </Typography>
@@ -94,14 +106,7 @@ export default function ProjectsPage() {
           </Typography>
         </Paper>
 
-        <Paper
-          variant="outlined"
-          sx={{
-            p: 2,
-            minWidth: 160,
-            borderRadius: '8px',
-          }}
-        >
+        <Paper variant="outlined" sx={{ p: 2, minWidth: 160 }}>
           <Typography variant="body2" color="text.secondary">
             Active Projects
           </Typography>
@@ -113,13 +118,9 @@ export default function ProjectsPage() {
 
       <Paper
         variant="outlined"
-        sx={{
-          borderRadius: '8px',
-          overflow: 'hidden',
-        }}
+        sx={{ borderRadius: '8px', overflow: 'hidden' }}
       >
         {projects.length === 0 ? (
-          /* EMPTY STATE */
           <Box
             sx={{
               py: 6,
@@ -142,10 +143,10 @@ export default function ProjectsPage() {
         ) : (
           <Box>
             {projects.map((project, index) => (
-              <Box key={project.id}>
+              <Box key={project._id}>
                 <Box
                   onClick={() =>
-                    navigate(routeHelpers.projectDetails(String(project.id)))
+                    navigate(routeHelpers.projectDetails(project._id))
                   }
                   sx={{
                     px: 2,

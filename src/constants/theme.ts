@@ -34,4 +34,4 @@ export const COLORS = {
     dragValid: '#36B37E',
     dragInvalid: '#FF5630',
   },
-} as const;
+};
