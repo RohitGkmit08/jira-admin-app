@@ -3,7 +3,7 @@ import { COLORS } from '../../constants/theme';
 export type Status = 'todo' | 'in_progress' | 'review' | 'done';
 
 export type Task = {
-  id: string;
+  _id: string;
   title: string;
   status: Status;
   description: string;
