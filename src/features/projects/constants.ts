@@ -24,8 +24,8 @@ export const ALLOWED_TRANSITIONS: Record<Status, Status[]> = {
 };
 
 export const STATUS_COLORS: Record<Status, string> = {
-  todo: COLORS.light.primary,
-  in_progress: '#FF991F',
-  review: '#6554C0',
-  done: COLORS.dragValid,
+  todo: COLORS.light.status.todo,
+  in_progress: COLORS.light.status.in_progress,
+  review: COLORS.light.status.review,
+  done: COLORS.light.status.done,
 };

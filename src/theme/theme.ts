@@ -8,13 +8,21 @@ export const getTheme = (mode: PaletteMode) =>
   createTheme({
     palette: {
       mode,
-      primary: { main: COLORS.light.primary },
-      secondary: { main: '#9c27b0' },
+
+      primary: {
+        main: mode === 'light' ? COLORS.light.primary : COLORS.dark.primary,
+      },
+
+      secondary: {
+        main: mode === 'light' ? COLORS.light.secondary : COLORS.dark.secondary,
+      },
+
       background: {
         default:
           mode === 'light' ? COLORS.light.background : COLORS.dark.background,
-        paper: mode === 'light' ? '#ffffff' : COLORS.dark.background,
+        paper: mode === 'light' ? COLORS.light.paper : COLORS.dark.background,
       },
+
       text: {
         primary:
           mode === 'light' ? COLORS.light.textPrimary : COLORS.dark.textPrimary,
@@ -23,15 +31,18 @@ export const getTheme = (mode: PaletteMode) =>
             ? COLORS.light.textSecondary
             : COLORS.dark.textSecondary,
       },
+
       divider: mode === 'light' ? COLORS.light.border : COLORS.dark.border,
     },
+
     typography,
+
     components: {
       MuiDialog: {
         styleOverrides: {
           paper: {
             backgroundColor:
-              mode === 'light' ? '#ffffff' : COLORS.dark.background,
+              mode === 'light' ? COLORS.light.paper : COLORS.dark.background,
           },
         },
       },
