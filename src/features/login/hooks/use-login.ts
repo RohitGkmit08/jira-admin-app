@@ -15,6 +15,7 @@ export function useLogin() {
 
 import { loginUser } from '../../../api/auth.api';
 import { authService } from '../../../services/auth.service';
+import { ROUTES } from '../../../constants/routes';
 
 type FormState = {
   email: string;
@@ -114,7 +115,7 @@ export const useLogin = () => {
       const res = await loginUser(form);
 
       authService.setToken(res.token);
-      navigate('/projects');
+      navigate(ROUTES.APP.PROJECTS);
     } catch (err: unknown) {
       if (err instanceof Error) {
         console.error(err.message);
