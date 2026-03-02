@@ -10,6 +10,9 @@ export const ROUTES = {
   ADMIN: {
     ROOT: '/admin',
   },
+  ERROR: {
+    UNAUTHORIZED: '/unauthorized',
+  },
 } as const;
 
 export const routeHelpers = {
