@@ -42,7 +42,7 @@ export default function ProjectDetailsPage() {
   const [editedTitle, setEditedTitle] = useState('');
   const [editedDescription, setEditedDescription] = useState('');
 
-  // ✅ Fetch tasks
+  // Fetch tasks
   useEffect(() => {
     const fetchTasks = async () => {
       try {
@@ -56,7 +56,7 @@ export default function ProjectDetailsPage() {
     fetchTasks();
   }, [projectId]);
 
-  // ✅ Create task with status
+  // Create task with status
   const handleCreate = async () => {
     if (!taskTitle.trim()) return;
 
@@ -105,7 +105,7 @@ export default function ProjectDetailsPage() {
     handleDetailClose();
   };
 
-  // ✅ Drag logic (UI only for now)
+  // Drag logic (UI only for now)
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
@@ -144,7 +144,7 @@ export default function ProjectDetailsPage() {
           }}
         >
           {COLUMNS.map((col) => {
-            const columnTasks = tasks.filter((t) => t.status === col.id);
+            const columnTasks = tasks.filter((task) => task.status === col.id);
 
             return (
               <DroppableColumn
@@ -157,11 +157,10 @@ export default function ProjectDetailsPage() {
                   setOpen(true);
                 }}
               >
-                {columnTasks.map((task, index) => (
+                {columnTasks.map((task) => (
                   <DraggableTask
                     key={task._id}
                     task={task}
-                    index={index}
                     theme={theme}
                     onDelete={handleDelete}
                     onClick={handleCardClick}
@@ -234,8 +233,6 @@ export default function ProjectDetailsPage() {
   );
 }
 
-/* ================= COLUMN ================= */
-
 type DroppableColumnProps = {
   col: { id: Status; title: string };
   tasks: Task[];
@@ -295,23 +292,14 @@ function DroppableColumn({
   );
 }
 
-/* ================= CARD ================= */
-
 type DraggableTaskProps = {
   task: Task;
-  index: number;
   theme: typeof COLORS.light;
   onDelete: (id: string) => void;
   onClick: (task: Task) => void;
 };
 
-function DraggableTask({
-  task,
-  index,
-  theme,
-  onDelete,
-  onClick,
-}: DraggableTaskProps) {
+function DraggableTask({ task, theme, onDelete, onClick }: DraggableTaskProps) {
   const { setNodeRef, listeners, attributes } = useDraggable({
     id: task._id,
   });
@@ -356,7 +344,7 @@ function DraggableTask({
       </IconButton>
 
       <Typography fontSize={11} color={theme.textSecondary}>
-        PROJ-{index + 1}
+        PROJ-{1}
       </Typography>
     </Paper>
   );
