@@ -342,10 +342,6 @@ function DraggableTask({ task, theme, onDelete, onClick }: DraggableTaskProps) {
       >
         <CloseIcon fontSize="small" />
       </IconButton>
-
-      <Typography fontSize={11} color={theme.textSecondary}>
-        PROJ-{1}
-      </Typography>
     </Paper>
   );
 }
