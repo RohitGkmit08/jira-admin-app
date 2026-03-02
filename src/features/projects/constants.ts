@@ -1,3 +1,5 @@
+import { COLORS } from '../../constants/theme';
+
 export type Status = 'todo' | 'in_progress' | 'review' | 'done';
 
 export type Task = {
@@ -21,9 +23,9 @@ export const ALLOWED_TRANSITIONS: Record<Status, Status[]> = {
   done: [],
 };
 
-export const STATUS_ACCENT: Record<Status, string> = {
-  todo: '#4C9AFF',
+export const STATUS_COLORS: Record<Status, string> = {
+  todo: COLORS.light.primary,
   in_progress: '#FF991F',
   review: '#6554C0',
-  done: '#36B37E',
+  done: COLORS.dragValid,
 };

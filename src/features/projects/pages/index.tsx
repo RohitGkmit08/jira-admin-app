@@ -48,6 +48,11 @@ export default function ProjectsPage() {
     handleClose();
   };
 
+  const stats = [
+    { label: 'Total Projects', length: projects.length },
+    { label: 'Active Projects', length: projects.length },
+  ];
+
   return (
     <PageContainer title="Projects">
       <Box
@@ -78,37 +83,24 @@ export default function ProjectsPage() {
       <Divider sx={{ mb: 3 }} />
 
       <Box display="flex" gap={2} flexWrap="wrap" mb={3}>
-        <Paper
-          variant="outlined"
-          sx={{
-            p: 2,
-            minWidth: 160,
-            borderRadius: '8px',
-          }}
-        >
-          <Typography variant="body2" color="text.secondary">
-            Total Projects
-          </Typography>
-          <Typography variant="h4" fontWeight={600}>
-            {projects.length}
-          </Typography>
-        </Paper>
-
-        <Paper
-          variant="outlined"
-          sx={{
-            p: 2,
-            minWidth: 160,
-            borderRadius: '8px',
-          }}
-        >
-          <Typography variant="body2" color="text.secondary">
-            Active Projects
-          </Typography>
-          <Typography variant="h4" fontWeight={600}>
-            {projects.length}
-          </Typography>
-        </Paper>
+        {stats.map(({ label, length }) => (
+          <Paper
+            key={label}
+            variant="outlined"
+            sx={{
+              p: 2,
+              minWidth: 160,
+              borderRadius: '8px',
+            }}
+          >
+            <Typography variant="body2" color="text.secondary">
+              {label}
+            </Typography>
+            <Typography variant="h4" fontWeight={600}>
+              {length}
+            </Typography>
+          </Paper>
+        ))}
       </Box>
 
       <Paper
@@ -119,7 +111,6 @@ export default function ProjectsPage() {
         }}
       >
         {projects.length === 0 ? (
-          /* EMPTY STATE */
           <Box
             sx={{
               py: 6,

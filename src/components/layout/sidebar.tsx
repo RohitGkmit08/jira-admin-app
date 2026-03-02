@@ -62,7 +62,7 @@ export default function Sidebar({ mobileOpen, onToggle }: Props) {
                   borderRadius: '8px',
                   mb: 0.5,
                   backgroundColor: isActive ? 'primary.main' : 'transparent',
-                  color: isActive ? '#ffffff' : 'text.primary',
+                  color: isActive ? 'primary.contrastText' : 'text.primary',
                   '&:hover': {
                     backgroundColor: isActive ? 'primary.main' : 'action.hover',
                   },
@@ -71,7 +71,7 @@ export default function Sidebar({ mobileOpen, onToggle }: Props) {
                 <ListItemIcon
                   sx={{
                     minWidth: 32,
-                    color: isActive ? '#ffffff' : 'text.secondary',
+                    color: isActive ? 'primary.contrastText' : 'text.secondary',
                   }}
                 >
                   <FolderIcon fontSize="small" />

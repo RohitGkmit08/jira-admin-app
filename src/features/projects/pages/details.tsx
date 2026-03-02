@@ -19,12 +19,12 @@ import CloseIcon from '@mui/icons-material/Close';
 
 import PageContainer from '../../../components/common/page-container';
 import AppDialog from '../../../components/common/app-dialog';
-import AppDndContext from '../../../components/common/dnd-context';
+import DndContextWrapper from '../../../components/common/dnd-context';
 import { COLORS } from '../../../constants/theme';
 import {
   COLUMNS,
   ALLOWED_TRANSITIONS,
-  STATUS_ACCENT,
+  STATUS_COLORS,
   type Task,
   type Status,
 } from '../constants';
@@ -117,7 +117,7 @@ export default function ProjectDetailsPage() {
         Project: {projectId}
       </Typography>
 
-      <AppDndContext
+      <DndContextWrapper
         onDragStart={(id) => setActiveId(id)}
         onDragEnd={(event) => {
           handleDragEnd(event);
@@ -165,7 +165,7 @@ export default function ProjectDetailsPage() {
             );
           })}
         </Box>
-      </AppDndContext>
+      </DndContextWrapper>
 
       <AppDialog
         open={open}
@@ -222,7 +222,7 @@ export default function ProjectDetailsPage() {
             <Box
               sx={{
                 backgroundColor: selectedTask
-                  ? STATUS_ACCENT[selectedTask.status]
+                  ? STATUS_COLORS[selectedTask.status]
                   : 'transparent',
                 borderRadius: '4px',
                 px: 1,
@@ -306,7 +306,7 @@ function DroppableColumn({
   }
 
   const isDragOver = isOver && activeTask;
-  const accentColor = STATUS_ACCENT[col.id];
+  const accentColor = STATUS_COLORS[col.id];
   const columnTaskCount = tasks.filter((t) => t.status === col.id).length;
 
   return (
@@ -320,8 +320,8 @@ function DroppableColumn({
         border: `1px solid ${
           isDragOver
             ? isValid
-              ? theme.dragValid
-              : theme.dragInvalid
+              ? COLORS.dragValid
+              : COLORS.dragInvalid
             : theme.border
         }`,
         borderTop: `3px solid ${accentColor}`,
@@ -455,7 +455,7 @@ function DraggableTask({
     id: task.id,
   });
 
-  const accentColor = STATUS_ACCENT[task.status];
+  const accentColor = STATUS_COLORS[task.status];
 
   return (
     <Paper
@@ -464,7 +464,7 @@ function DraggableTask({
       sx={{
         p: 1.5,
         borderRadius: '6px',
-        backgroundColor: theme.surface,
+        backgroundColor: 'background.paper',
         border: `1px solid ${theme.border}`,
         borderLeft: `3px solid ${accentColor}`,
         boxShadow: 'none',
@@ -502,7 +502,7 @@ function DraggableTask({
           height: 20,
           color: theme.textSecondary,
           '&:hover': {
-            color: theme.dragInvalid,
+            color: COLORS.dragInvalid,
             backgroundColor: 'transparent',
           },
         }}

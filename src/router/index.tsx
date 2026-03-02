@@ -6,7 +6,7 @@ import { ProjectDetailsPage } from '../features/projects';
 import AppLayout from '../components/layout';
 import { ROUTES } from '../constants/routes';
 
-import RequireAuth from './require-auth';
+import RequireAuth from './private-route';
 import RequireRole from './require-role';
 
 const AdminPage = () => <div>Admin Only</div>;

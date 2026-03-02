@@ -15,7 +15,7 @@ type Props = {
   overlay?: React.ReactNode;
 };
 
-export default function AppDndContext({
+export default function DndContextWrapper({
   onDragStart,
   onDragEnd,
   children,

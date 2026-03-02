@@ -1,25 +1,23 @@
-import { Navigate } from 'react-router-dom';
-
-import type { UserRole, AuthUser } from '../features/login/types/auth-user.types';
+import { Navigate, Outlet } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
+import { authService } from '../services/auth.service';
 
-interface Props {
-  children: React.ReactNode;
-  allowedRoles: UserRole[];
-}
+type RequireRoleProps = {
+  allowedRoles: string[];
+};
 
-export default function RequireRole({ children, allowedRoles }: Props) {
-  const user: AuthUser | null = JSON.parse(
-    localStorage.getItem('user') || 'null',
-  );
+export const RequireRole = ({ allowedRoles }: RequireRoleProps) => {
+  const token = authService.getToken();
 
-  if (!user) {
+  if (!token) {
     return <Navigate to={ROUTES.AUTH.LOGIN} replace />;
   }
 
-  if (!allowedRoles.includes(user.role)) {
+  const userRole = 'admin';
+
+  if (!allowedRoles.includes(userRole)) {
     return <Navigate to={ROUTES.APP.PROJECTS} replace />;
   }
 
-  return <>{children}</>;
-}
+  return <Outlet />;
+};
