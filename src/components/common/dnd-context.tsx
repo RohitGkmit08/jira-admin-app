@@ -23,9 +23,7 @@ export default function DndContextWrapper({
 }: Props) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
+      activationConstraint: { distance: 8 },
     }),
   );
 
@@ -33,13 +31,11 @@ export default function DndContextWrapper({
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
-      onDragStart={(event) => {
-        onDragStart?.(event.active.id as string);
-      }}
+      onDragStart={(event) => onDragStart?.(event.active.id as string)}
       onDragEnd={onDragEnd}
     >
       {children}
-      <DragOverlay>{overlay ?? null}</DragOverlay>
+      <DragOverlay dropAnimation={null}>{overlay}</DragOverlay>
     </DndContext>
   );
 }

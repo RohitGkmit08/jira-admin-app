@@ -1,4 +1,5 @@
 import { Navigate, Outlet } from 'react-router-dom';
+
 import { ROUTES } from '../constants/routes';
 import { authService } from '../services/auth.service';
 
@@ -6,7 +7,7 @@ type RequireRoleProps = {
   allowedRoles: string[];
 };
 
-export const RequireRole = ({ allowedRoles }: RequireRoleProps) => {
+const RequireRole = ({ allowedRoles }: RequireRoleProps) => {
   const token = authService.getToken();
 
   if (!token) {
@@ -21,3 +22,5 @@ export const RequireRole = ({ allowedRoles }: RequireRoleProps) => {
 
   return <Outlet />;
 };
+
+export default RequireRole;

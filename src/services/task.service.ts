@@ -15,3 +15,13 @@ export const createTask = async (data: {
     body: JSON.stringify(data),
   });
 };
+
+export const updateTask = async (
+  id: string,
+  data: { status?: Status; title?: string },
+) => {
+  return await apiFetch(`/tasks/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+};

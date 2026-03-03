@@ -20,14 +20,12 @@ import PageContainer from '../../../components/common/page-container';
 import AppDialog from '../../../components/common/app-dialog';
 import DndContextWrapper from '../../../components/common/dnd-context';
 import { COLORS } from '../../../constants/theme';
+import { COLUMNS, STATUS_COLORS, type Task, type Status } from '../constants';
 import {
-  COLUMNS,
-  ALLOWED_TRANSITIONS,
-  STATUS_COLORS,
-  type Task,
-  type Status,
-} from '../constants';
-import { getTasks, createTask } from '../../../services/task.service';
+  getTasks,
+  createTask,
+  updateTask,
+} from '../../../services/task.service';
 
 export default function ProjectDetailsPage() {
   const { projectId } = useParams();
@@ -40,10 +38,8 @@ export default function ProjectDetailsPage() {
   const [selectedStatus, setSelectedStatus] = useState<Status>('todo');
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [editedTitle, setEditedTitle] = useState('');
-  const [editedDescription, setEditedDescription] = useState('');
   const [activeId, setActiveId] = useState<string | null>(null);
 
-  // Fetch tasks
   useEffect(() => {
     const fetchTasks = async () => {
       try {
@@ -79,47 +75,51 @@ export default function ProjectDetailsPage() {
     setTasks((prev) => prev.filter((task) => task._id !== taskId));
   };
 
-  const handleCardClick = (task: Task) => {
-    setSelectedTask(task);
-    setEditedTitle(task.title);
-    setEditedDescription(task.description || '');
-  };
-
-  const handleDetailClose = () => {
-    setSelectedTask(null);
-    setEditedTitle('');
-    setEditedDescription('');
-  };
-
-  const handleDetailSave = () => {
+  const handleDetailSave = async () => {
     if (!selectedTask) return;
 
-    setTasks((prev) =>
-      prev.map((task) =>
-        task._id === selectedTask._id
-          ? { ...task, title: editedTitle, description: editedDescription }
-          : task,
-      ),
-    );
+    try {
+      const updatedTask = await updateTask(selectedTask._id, {
+        title: editedTitle,
+      });
 
-    handleDetailClose();
+      setTasks((prev) =>
+        prev.map((task) =>
+          task._id === selectedTask._id ? updatedTask : task,
+        ),
+      );
+
+      setSelectedTask(null);
+      setEditedTitle('');
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
 
     const taskId = active.id as string;
     const newStatus = over.id as Status;
 
-    setTasks((prev) =>
-      prev.map((task) => {
-        if (task._id !== taskId) return task;
-        if (!ALLOWED_TRANSITIONS[task.status].includes(newStatus)) return task;
-        return { ...task, status: newStatus };
-      }),
-    );
+    const task = tasks.find((t) => t._id === taskId);
+    if (!task || task.status === newStatus) return;
+
+    try {
+      const updatedTask = await updateTask(taskId, {
+        status: newStatus,
+      });
+
+      setTasks((prev) =>
+        prev.map((task) => (task._id === taskId ? updatedTask : task)),
+      );
+    } catch (err) {
+      console.error(err);
+    }
   };
+
+  const activeTask = tasks.find((task) => task._id === activeId);
 
   return (
     <PageContainer title="Project Board">
@@ -136,10 +136,23 @@ export default function ProjectDetailsPage() {
 
       <DndContextWrapper
         onDragStart={(id) => setActiveId(id)}
-        onDragEnd={(event) => {
-          handleDragEnd(event);
+        onDragEnd={async (event) => {
+          await handleDragEnd(event);
           setActiveId(null);
         }}
+        overlay={
+          activeTask ? (
+            <Paper
+              sx={{
+                p: 1.5,
+                borderRadius: '6px',
+                boxShadow: 6,
+              }}
+            >
+              {activeTask.title}
+            </Paper>
+          ) : null
+        }
       >
         <Box
           sx={{
@@ -168,8 +181,12 @@ export default function ProjectDetailsPage() {
                     key={task._id}
                     task={task}
                     theme={theme}
+                    activeId={activeId}
                     onDelete={handleDelete}
-                    onClick={handleCardClick}
+                    onClick={(task) => {
+                      setSelectedTask(task);
+                      setEditedTitle(task.title);
+                    }}
                   />
                 ))}
               </DroppableColumn>
@@ -178,7 +195,6 @@ export default function ProjectDetailsPage() {
         </Box>
       </DndContextWrapper>
 
-      {/* CREATE */}
       <AppDialog
         open={open}
         onClose={() => setOpen(false)}
@@ -204,10 +220,9 @@ export default function ProjectDetailsPage() {
         />
       </AppDialog>
 
-      {/* DETAILS */}
       <Dialog
         open={Boolean(selectedTask)}
-        onClose={handleDetailClose}
+        onClose={() => setSelectedTask(null)}
         fullWidth
         maxWidth="sm"
       >
@@ -219,18 +234,9 @@ export default function ProjectDetailsPage() {
             value={editedTitle}
             onChange={(e) => setEditedTitle(e.target.value)}
           />
-          <TextField
-            fullWidth
-            multiline
-            rows={4}
-            label="Description"
-            value={editedDescription}
-            onChange={(e) => setEditedDescription(e.target.value)}
-            sx={{ mt: 2 }}
-          />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDetailClose}>Cancel</Button>
+          <Button onClick={() => setSelectedTask(null)}>Cancel</Button>
           <Button
             variant="contained"
             onClick={handleDetailSave}
@@ -261,16 +267,8 @@ function DroppableColumn({
   theme,
   activeId,
 }: DroppableColumnProps) {
-  const { setNodeRef, isOver } = useDroppable({ id: col.id });
+  const { setNodeRef } = useDroppable({ id: col.id });
 
-  const activeTask = tasks.find((task) => task._id === activeId);
-
-  let isValid = false;
-  if (activeTask) {
-    isValid = ALLOWED_TRANSITIONS[activeTask.status].includes(col.id);
-  }
-
-  const isDragOver = isOver && activeTask;
   const accentColor = STATUS_COLORS[col.id];
   const columnTaskCount = tasks.filter((task) => task.status === col.id).length;
 
@@ -282,15 +280,8 @@ function DroppableColumn({
         flexDirection: 'column',
         backgroundColor: theme.columnBg,
         borderRadius: '8px',
-        border: `1px solid ${
-          isDragOver
-            ? isValid
-              ? COLORS.dragValid
-              : COLORS.dragInvalid
-            : theme.border
-        }`,
+        border: `1px solid ${theme.border}`,
         borderTop: `3px solid ${accentColor}`,
-        transition: 'border-color 0.15s ease',
       }}
     >
       <Box sx={{ px: 2, py: 1.5, display: 'flex', gap: 1 }}>
@@ -311,13 +302,11 @@ function DroppableColumn({
 
       <Box sx={{ flex: 1, p: 1.5 }}>{children}</Box>
 
-      {col.id !== 'done' && (
-        <Box sx={{ p: 1.5 }}>
-          <Button onClick={onAddTask} fullWidth>
-            + Add Task
-          </Button>
-        </Box>
-      )}
+      <Box sx={{ p: 1.5 }}>
+        <Button onClick={onAddTask} fullWidth>
+          + Add Task
+        </Button>
+      </Box>
     </Box>
   );
 }
@@ -325,16 +314,24 @@ function DroppableColumn({
 type DraggableTaskProps = {
   task: Task;
   theme: typeof COLORS.light;
+  activeId: string | null;
   onDelete: (id: string) => void;
   onClick: (task: Task) => void;
 };
 
-function DraggableTask({ task, theme, onDelete, onClick }: DraggableTaskProps) {
+function DraggableTask({
+  task,
+  theme,
+  activeId,
+  onDelete,
+  onClick,
+}: DraggableTaskProps) {
   const { setNodeRef, listeners, attributes } = useDraggable({
     id: task._id,
   });
 
   const accentColor = STATUS_COLORS[task.status];
+  const isDragging = activeId === task._id;
 
   return (
     <Paper
@@ -344,23 +341,16 @@ function DraggableTask({ task, theme, onDelete, onClick }: DraggableTaskProps) {
       sx={{
         p: 1.5,
         borderRadius: '6px',
-        backgroundColor: 'background.paper',
         border: `1px solid ${theme.border}`,
         borderLeft: `3px solid ${accentColor}`,
         mb: 1.5,
         cursor: 'grab',
-        '&:hover': {
-          boxShadow: theme.shadow,
-        },
+        visibility: isDragging ? 'hidden' : 'visible',
       }}
     >
       <Typography
         onClick={() => onClick(task)}
-        sx={{
-          fontSize: 13,
-          fontWeight: 500,
-          color: theme.textPrimary,
-        }}
+        sx={{ fontSize: 13, fontWeight: 500 }}
       >
         {task.title}
       </Typography>
