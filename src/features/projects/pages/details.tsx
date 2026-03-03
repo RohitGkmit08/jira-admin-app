@@ -43,10 +43,6 @@ export default function ProjectDetailsPage() {
   const [editedTitle, setEditedTitle] = useState('');
   const [editedDescription, setEditedDescription] = useState('');
 
-<<<<<<< HEAD
-=======
-  // Fetch tasks
->>>>>>> 6f83ed0 (fix: address PR review comments in auth flow and project details page)
   useEffect(() => {
     const fetchTasks = async () => {
       try {
@@ -60,10 +56,6 @@ export default function ProjectDetailsPage() {
     fetchTasks();
   }, [projectId]);
 
-<<<<<<< HEAD
-=======
-  // Create task with status
->>>>>>> 6f83ed0 (fix: address PR review comments in auth flow and project details page)
   const handleCreate = async () => {
     if (!taskTitle.trim()) return;
 
@@ -112,10 +104,6 @@ export default function ProjectDetailsPage() {
     handleDetailClose();
   };
 
-<<<<<<< HEAD
-=======
-  // Drag logic (UI only for now)
->>>>>>> 6f83ed0 (fix: address PR review comments in auth flow and project details page)
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
