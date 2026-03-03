@@ -1,4 +1,5 @@
 import { Navigate, Outlet } from 'react-router-dom';
+
 import { ROUTES } from '../constants/routes';
 import { authService } from '../services/auth.service';
 
@@ -8,15 +9,14 @@ type RequireRoleProps = {
 
 export const RequireRole = ({ allowedRoles }: RequireRoleProps) => {
   const token = authService.getToken();
+  const user = authService.getUser();
 
-  if (!token) {
+  if (!token || !user) {
     return <Navigate to={ROUTES.AUTH.LOGIN} replace />;
   }
 
-  const userRole = 'admin';
-
-  if (!allowedRoles.includes(userRole)) {
-    return <Navigate to={ROUTES.APP.PROJECTS} replace />;
+  if (!allowedRoles.includes(user.role)) {
+    return <Navigate to={ROUTES.ERROR.UNAUTHORIZED} replace />;
   }
 
   return <Outlet />;
