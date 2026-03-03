@@ -38,11 +38,12 @@ export default function ProjectDetailsPage() {
   const [open, setOpen] = useState(false);
   const [taskTitle, setTaskTitle] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<Status>('todo');
-  const [activeId, setActiveId] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [editedTitle, setEditedTitle] = useState('');
   const [editedDescription, setEditedDescription] = useState('');
+  const [activeId, setActiveId] = useState<string | null>(null);
 
+  // Fetch tasks
   useEffect(() => {
     const fetchTasks = async () => {
       try {
@@ -155,8 +156,8 @@ export default function ProjectDetailsPage() {
                 key={col.id}
                 col={col}
                 tasks={tasks}
-                activeId={activeId}
                 theme={theme}
+                activeId={activeId}
                 onAddTask={() => {
                   setSelectedStatus(col.id);
                   setOpen(true);
@@ -177,10 +178,11 @@ export default function ProjectDetailsPage() {
         </Box>
       </DndContextWrapper>
 
+      {/* CREATE */}
       <AppDialog
         open={open}
         onClose={() => setOpen(false)}
-        title={`Add task to ${COLUMNS.find((col) => col.id === selectedStatus)?.title}`}
+        title={`Add task to ${selectedStatus}`}
         actions={
           <>
             <Button onClick={() => setOpen(false)}>Cancel</Button>
@@ -202,54 +204,14 @@ export default function ProjectDetailsPage() {
         />
       </AppDialog>
 
+      {/* DETAILS */}
       <Dialog
         open={Boolean(selectedTask)}
         onClose={handleDetailClose}
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <Typography
-              sx={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: theme.textSecondary,
-              }}
-            >
-              PROJ-{tasks.indexOf(selectedTask!) + 1}
-            </Typography>
-
-            <Box
-              sx={{
-                backgroundColor: selectedTask
-                  ? STATUS_COLORS[selectedTask.status]
-                  : 'transparent',
-                borderRadius: '4px',
-                px: 1,
-                py: 0.3,
-              }}
-            >
-              <Typography
-                sx={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: 'common.white',
-                  textTransform: 'uppercase',
-                }}
-              >
-                {selectedTask?.status.replace('_', ' ')}
-              </Typography>
-            </Box>
-          </Box>
-        </DialogTitle>
-
+        <DialogTitle>Task Details</DialogTitle>
         <DialogContent>
           <TextField
             fullWidth
@@ -285,19 +247,19 @@ export default function ProjectDetailsPage() {
 type DroppableColumnProps = {
   col: { id: Status; title: string };
   tasks: Task[];
-  activeId: string | null;
   children: React.ReactNode;
   onAddTask: () => void;
   theme: typeof COLORS.light;
+  activeId: string | null;
 };
 
 function DroppableColumn({
   col,
   tasks,
-  activeId,
   children,
   onAddTask,
   theme,
+  activeId,
 }: DroppableColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: col.id });
 
@@ -310,7 +272,7 @@ function DroppableColumn({
 
   const isDragOver = isOver && activeTask;
   const accentColor = STATUS_COLORS[col.id];
-  const columnTaskCount = tasks.filter((t) => t.status === col.id).length;
+  const columnTaskCount = tasks.filter((task) => task.status === col.id).length;
 
   return (
     <Box
@@ -329,7 +291,6 @@ function DroppableColumn({
         }`,
         borderTop: `3px solid ${accentColor}`,
         transition: 'border-color 0.15s ease',
-        minWidth: 0,
       }}
     >
       <Box sx={{ px: 2, py: 1.5, display: 'flex', gap: 1 }}>

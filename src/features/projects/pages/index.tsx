@@ -101,11 +101,7 @@ export default function ProjectsPage() {
           <Paper
             key={label}
             variant="outlined"
-            sx={{
-              p: 2,
-              minWidth: 160,
-              borderRadius: '8px',
-            }}
+            sx={{ p: 2, minWidth: 160, borderRadius: '8px' }}
           >
             <Typography variant="body2" color="text.secondary">
               {label}
@@ -156,9 +152,7 @@ export default function ProjectsPage() {
                     alignItems: 'center',
                     gap: 1.5,
                     cursor: 'pointer',
-                    '&:hover': {
-                      backgroundColor: 'action.hover',
-                    },
+                    '&:hover': { backgroundColor: 'action.hover' },
                   }}
                 >
                   <FolderOpenIcon
@@ -176,7 +170,6 @@ export default function ProjectsPage() {
                     #{index + 1}
                   </Typography>
                 </Box>
-
                 {index < projects.length - 1 && <Divider />}
               </Box>
             ))}
@@ -186,7 +179,6 @@ export default function ProjectsPage() {
 
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
         <DialogTitle>Create Project</DialogTitle>
-
         <DialogContent>
           <TextField
             label="Project Name"
@@ -198,7 +190,6 @@ export default function ProjectsPage() {
             autoFocus
           />
         </DialogContent>
-
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
           <Button
