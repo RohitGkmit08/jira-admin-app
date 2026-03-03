@@ -19,7 +19,7 @@ import CloseIcon from '@mui/icons-material/Close';
 
 import PageContainer from '../../../components/common/page-container';
 import AppDialog from '../../../components/common/app-dialog';
-import DndContextWrapper from '../../../components/common/dnd-context';
+import DndContextWrapper from '../../../components/common/dnd-context-wrapper';
 import { COLORS } from '../../../constants/theme';
 import {
   COLUMNS,
