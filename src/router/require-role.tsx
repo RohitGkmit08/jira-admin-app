@@ -9,13 +9,14 @@ type RequireRoleProps = {
 
 export const RequireRole = ({ allowedRoles }: RequireRoleProps) => {
   const token = authService.getToken();
-  const user = authService.getUser();
 
-  if (!token || !user) {
+  if (!token) {
     return <Navigate to={ROUTES.AUTH.LOGIN} replace />;
   }
 
-  if (!allowedRoles.includes(user.role)) {
+  const user = authService.getUser();
+
+  if (!user || !allowedRoles.includes(user.role)) {
     return <Navigate to={ROUTES.ERROR.UNAUTHORIZED} replace />;
   }
 
