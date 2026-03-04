@@ -1,16 +1,7 @@
-import { useState, Children } from 'react';
-import {
-  Box,
-  Typography,
-  Paper,
-  Button,
-  TextField,
-  useTheme,
-  IconButton,
-} from '@mui/material';
+import { useState } from 'react';
+import { Box, Typography, Button, TextField, useTheme } from '@mui/material';
 import { useParams } from 'react-router-dom';
-import { useDraggable, useDroppable, type DragEndEvent } from '@dnd-kit/core';
-import CloseIcon from '@mui/icons-material/Close';
+import type { DragEndEvent } from '@dnd-kit/core';
 
 import PageContainer from '../../../components/common/page-container';
 import AppDialog from '../../../components/common/app-dialog';
@@ -19,10 +10,11 @@ import { COLORS } from '../../../constants/theme';
 import {
   COLUMNS,
   ALLOWED_TRANSITIONS,
-  STATUS_COLORS,
   type Task,
   type Status,
 } from '../constants';
+import { DroppableColumn } from '../components/droppable-column';
+import { DraggableTask } from '../components/draggable-task';
 
 export default function ProjectDetailsPage() {
   const { projectId } = useParams();
@@ -135,7 +127,6 @@ export default function ProjectDetailsPage() {
                 col={col}
                 tasks={tasks}
                 activeId={activeId}
-                theme={theme}
                 onAddTask={() => {
                   setSelectedStatus(col.id);
                   setOpen(true);
@@ -228,150 +219,5 @@ export default function ProjectDetailsPage() {
         </Box>
       </AppDialog>
     </PageContainer>
-  );
-}
-
-type DroppableColumnProps = {
-  col: { id: Status; title: string };
-  tasks: Task[];
-  activeId: string | null;
-  children: React.ReactNode;
-  onAddTask: () => void;
-  theme: typeof COLORS.light;
-};
-
-function DroppableColumn({
-  col,
-  tasks,
-  activeId,
-  children,
-  onAddTask,
-  theme,
-}: DroppableColumnProps) {
-  const { setNodeRef, isOver } = useDroppable({ id: col.id });
-
-  const activeTask = tasks.find((task) => task.id === activeId);
-
-  let isValid = false;
-  if (activeTask) {
-    isValid = ALLOWED_TRANSITIONS[activeTask.status].includes(col.id);
-  }
-
-  const isDragOver = isOver && activeTask;
-  const accentColor = STATUS_COLORS[col.id];
-  const columnTaskCount = tasks.filter((task) => task.status === col.id).length;
-
-  return (
-    <Box
-      ref={setNodeRef}
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: theme.columnBg,
-        borderRadius: '8px',
-        border: `1px solid ${
-          isDragOver
-            ? isValid
-              ? COLORS.dragValid
-              : COLORS.dragInvalid
-            : theme.border
-        }`,
-        borderTop: `3px solid ${accentColor}`,
-        transition: 'border-color 0.15s ease',
-        minWidth: 0,
-      }}
-    >
-      <Box sx={{ px: 2, pt: 2, pb: 1.5, display: 'flex', gap: 1 }}>
-        <Typography
-          sx={{
-            fontSize: 12,
-            fontWeight: 700,
-            color: theme.textSecondary,
-            textTransform: 'uppercase',
-          }}
-        >
-          {col.title}
-        </Typography>
-
-        <Typography sx={{ fontSize: 11, color: theme.textSecondary }}>
-          {columnTaskCount}
-        </Typography>
-      </Box>
-
-      <Box sx={{ px: 1.5, py: 1.5, flexGrow: 1 }}>
-        {Children.count(children) === 0 ? (
-          <Typography sx={{ fontSize: 12, color: theme.textSecondary }}>
-            No tasks
-          </Typography>
-        ) : (
-          children
-        )}
-      </Box>
-
-      {col.id !== 'done' && (
-        <Box sx={{ px: 1.5, pb: 1.5 }}>
-          <Button size="small" onClick={onAddTask}>
-            + Add task
-          </Button>
-        </Box>
-      )}
-    </Box>
-  );
-}
-
-type DraggableTaskProps = {
-  task: Task;
-  index: number;
-  theme: typeof COLORS.light;
-  onDelete: (taskId: string) => void;
-  onClick: (task: Task) => void;
-};
-
-function DraggableTask({
-  task,
-  index,
-  theme,
-  onDelete,
-  onClick,
-}: DraggableTaskProps) {
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
-    id: task.id,
-  });
-
-  const accentColor = STATUS_COLORS[task.status];
-
-  return (
-    <Paper
-      ref={setNodeRef}
-      {...attributes}
-      sx={{
-        p: 1.5,
-        borderRadius: '6px',
-        borderLeft: `3px solid ${accentColor}`,
-        transform: transform
-          ? `translate(${transform.x}px, ${transform.y}px)`
-          : undefined,
-        position: 'relative',
-      }}
-    >
-      <IconButton
-        size="small"
-        onClick={(e) => {
-          e.stopPropagation();
-          onDelete(task.id);
-        }}
-        sx={{ position: 'absolute', top: 4, right: 4 }}
-      >
-        <CloseIcon sx={{ fontSize: 14 }} />
-      </IconButton>
-
-      <Box {...listeners} onClick={() => onClick(task)}>
-        <Typography sx={{ fontSize: 13 }}>{task.title}</Typography>
-
-        <Typography sx={{ fontSize: 11, color: theme.textSecondary }}>
-          PROJ-{index + 1}
-        </Typography>
-      </Box>
-    </Paper>
   );
 }

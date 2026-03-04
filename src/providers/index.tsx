@@ -35,12 +35,12 @@ export function ColorModeProvider({ children }: Props) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ColorModeContext.Provider value={{ mode, toggleMode }}>
+      <ColorModeContext value={{ mode, toggleMode }}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
           {children}
         </ThemeProvider>
-      </ColorModeContext.Provider>
+      </ColorModeContext>
     </QueryClientProvider>
   );
 }
