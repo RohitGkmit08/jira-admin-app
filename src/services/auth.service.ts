@@ -1,5 +1,4 @@
-const TOKEN_KEY = 'token';
-const USER_KEY = 'user';
+import { STORAGE_KEYS } from '../constants/storage';
 
 export type AuthUser = {
   _id: string;
@@ -11,25 +10,25 @@ export type AuthUser = {
 
 export const authService = {
   getToken: () => {
-    return localStorage.getItem(TOKEN_KEY);
+    return localStorage.getItem(STORAGE_KEYS.TOKEN);
   },
 
   getUser: (): AuthUser | null => {
-    const user = localStorage.getItem(USER_KEY);
+    const user = localStorage.getItem(STORAGE_KEYS.USER);
     return user ? JSON.parse(user) : null;
   },
 
   setAuth: (token: string, user: AuthUser) => {
-    localStorage.setItem(TOKEN_KEY, token);
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    localStorage.setItem(STORAGE_KEYS.TOKEN, token);
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
   },
 
   removeAuth: () => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(STORAGE_KEYS.TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.USER);
   },
 
   isAuthenticated: () => {
-    return !!localStorage.getItem(TOKEN_KEY);
+    return !!localStorage.getItem(STORAGE_KEYS.TOKEN);
   },
 };
