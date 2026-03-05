@@ -11,9 +11,11 @@ import {
 } from '@mui/material';
 import FolderIcon from '@mui/icons-material/Folder';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 
 import { ROUTES } from '../../constants/routes';
+
 const drawerWidth = 240;
 
 type Props = {
@@ -24,6 +26,8 @@ type Props = {
 export default function Sidebar({ mobileOpen, onToggle }: Props) {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   const isProjectDetails = location.pathname.startsWith(
     ROUTES.APP.PROJECTS + '/',
@@ -55,6 +59,7 @@ export default function Sidebar({ mobileOpen, onToggle }: Props) {
         </Typography>
 
         <List sx={{ p: 0 }}>
+          {/* Projects */}
           <NavLink to={ROUTES.APP.PROJECTS} style={{ textDecoration: 'none' }}>
             {({ isActive }) => (
               <ListItemButton
@@ -76,6 +81,7 @@ export default function Sidebar({ mobileOpen, onToggle }: Props) {
                 >
                   <FolderIcon fontSize="small" />
                 </ListItemIcon>
+
                 <ListItemText
                   primary="Projects"
                   primaryTypographyProps={{
@@ -86,6 +92,46 @@ export default function Sidebar({ mobileOpen, onToggle }: Props) {
               </ListItemButton>
             )}
           </NavLink>
+
+          {/* Admin */}
+          {user?.role === 'admin' && (
+            <NavLink to={ROUTES.ADMIN.ROOT} style={{ textDecoration: 'none' }}>
+              {({ isActive }) => (
+                <ListItemButton
+                  sx={{
+                    borderRadius: '8px',
+                    mb: 0.5,
+                    backgroundColor: isActive ? 'primary.main' : 'transparent',
+                    color: isActive ? 'primary.contrastText' : 'text.primary',
+                    '&:hover': {
+                      backgroundColor: isActive
+                        ? 'primary.main'
+                        : 'action.hover',
+                    },
+                  }}
+                >
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 32,
+                      color: isActive
+                        ? 'primary.contrastText'
+                        : 'text.secondary',
+                    }}
+                  >
+                    <AdminPanelSettingsIcon fontSize="small" />
+                  </ListItemIcon>
+
+                  <ListItemText
+                    primary="Admin"
+                    primaryTypographyProps={{
+                      fontSize: 14,
+                      fontWeight: isActive ? 600 : 400,
+                    }}
+                  />
+                </ListItemButton>
+              )}
+            </NavLink>
+          )}
         </List>
       </Box>
 
@@ -104,14 +150,10 @@ export default function Sidebar({ mobileOpen, onToggle }: Props) {
               },
             }}
           >
-            <ListItemIcon
-              sx={{
-                minWidth: 32,
-                color: 'inherit',
-              }}
-            >
+            <ListItemIcon sx={{ minWidth: 32 }}>
               <ArrowBackIcon fontSize="small" />
             </ListItemIcon>
+
             <ListItemText
               primary="Back to Projects"
               primaryTypographyProps={{
@@ -142,7 +184,6 @@ export default function Sidebar({ mobileOpen, onToggle }: Props) {
           display: { xs: 'block', md: 'none' },
           '& .MuiDrawer-paper': {
             width: drawerWidth,
-            backgroundColor: 'background.paper',
           },
         }}
       >
@@ -157,9 +198,6 @@ export default function Sidebar({ mobileOpen, onToggle }: Props) {
           '& .MuiDrawer-paper': {
             width: drawerWidth,
             boxSizing: 'border-box',
-            backgroundColor: 'background.paper',
-            borderRight: '1px solid',
-            borderColor: 'divider',
           },
         }}
       >

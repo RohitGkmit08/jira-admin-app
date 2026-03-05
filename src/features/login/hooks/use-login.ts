@@ -14,12 +14,21 @@ export function useLogin() {
     email: '',
     password: '',
   });
+
   const [errors, setErrors] = useState<LoginFormErrors>({});
+  const [apiError, setApiError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    setErrors((prev) => ({ ...prev, [e.target.name]: '' }));
+    const { name, value } = e.target;
+
+    setForm((prev) => ({ ...prev, [name]: value }));
+
+    // clear field validation error
+    setErrors((prev) => ({ ...prev, [name]: '' }));
+
+    // clear API error when user edits
+    if (apiError) setApiError('');
   };
 
   const validate = () => {
@@ -38,6 +47,7 @@ export function useLogin() {
     }
 
     setErrors(newErrors);
+
     return Object.keys(newErrors).length === 0;
   };
 
@@ -46,17 +56,30 @@ export function useLogin() {
 
     try {
       setLoading(true);
+      setApiError('');
+
       const res = await loginUser(form);
-      authService.setToken(res.token);
+
+      authService.setAuth(res.token, res.user);
+
       navigate(ROUTES.APP.PROJECTS);
     } catch (err: unknown) {
+      let message = 'login failed, please try again';
       if (err instanceof Error) {
-        console.error(err.message);
+        message = err.message;
       }
+      setApiError(message);
     } finally {
       setLoading(false);
     }
   };
 
-  return { form, errors, loading, handleChange, handleSubmit };
+  return {
+    form,
+    errors,
+    apiError,
+    loading,
+    handleChange,
+    handleSubmit,
+  };
 }

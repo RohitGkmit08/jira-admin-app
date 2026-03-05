@@ -7,6 +7,7 @@ export const getTasks = async (projectId: string) => {
 
 export const createTask = async (data: {
   title: string;
+  description?: string;
   projectId: string;
   status: Status;
 }) => {
@@ -17,11 +18,21 @@ export const createTask = async (data: {
 };
 
 export const updateTask = async (
-  id: string,
-  data: { status?: Status; title?: string },
+  taskId: string,
+  data: {
+    title?: string;
+    description?: string;
+    status?: Status;
+  },
 ) => {
-  return await apiFetch(`/tasks/${id}`, {
+  return await apiFetch(`/tasks/${taskId}`, {
     method: 'PUT',
     body: JSON.stringify(data),
+  });
+};
+
+export const deleteTask = async (taskId: string) => {
+  return await apiFetch(`/tasks/${taskId}`, {
+    method: 'DELETE',
   });
 };

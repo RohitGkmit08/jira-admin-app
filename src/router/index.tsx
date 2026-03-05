@@ -3,13 +3,12 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import LoginPage from '../features/login/pages';
 import { ProjectsPage } from '../features/projects';
 import { ProjectDetailsPage } from '../features/projects';
+import AdminDashboard from '../features/admin/dashboard';
 import AppLayout from '../components/layout';
 import { ROUTES } from '../constants/routes';
 
 import RequireAuth from './private-route';
 import RequireRole from './require-role';
-
-const AdminPage = () => <div>Admin Only</div>;
 
 export const router = createBrowserRouter([
   {
@@ -40,7 +39,7 @@ export const router = createBrowserRouter([
             path: ROUTES.ADMIN.ROOT,
             element: (
               <RequireRole allowedRoles={['admin']}>
-                <AdminPage />
+                <AdminDashboard />
               </RequireRole>
             ),
           },

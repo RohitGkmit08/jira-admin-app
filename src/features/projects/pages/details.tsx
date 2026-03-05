@@ -25,25 +25,37 @@ import {
   getTasks,
   createTask,
   updateTask,
+  deleteTask,
 } from '../../../services/task.service';
 
 export default function ProjectDetailsPage() {
-  const { projectId } = useParams();
+  const { projectId } = useParams<{ projectId: string }>();
+
   const muiTheme = useTheme();
   const theme = muiTheme.palette.mode === 'dark' ? COLORS.dark : COLORS.light;
 
   const [tasks, setTasks] = useState<Task[]>([]);
+
   const [open, setOpen] = useState(false);
+
   const [taskTitle, setTaskTitle] = useState('');
+  const [taskDescription, setTaskDescription] = useState('');
+
   const [selectedStatus, setSelectedStatus] = useState<Status>('todo');
+
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
   const [editedTitle, setEditedTitle] = useState('');
+  const [editedDescription, setEditedDescription] = useState('');
+
   const [activeId, setActiveId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!projectId) return;
+
     const fetchTasks = async () => {
       try {
-        const data = await getTasks(projectId!);
+        const data = await getTasks(projectId);
         setTasks(data);
       } catch (err) {
         console.error(err);
@@ -54,25 +66,34 @@ export default function ProjectDetailsPage() {
   }, [projectId]);
 
   const handleCreate = async () => {
-    if (!taskTitle.trim()) return;
+    if (!taskTitle.trim() || !projectId) return;
 
     try {
       const newTask = await createTask({
         title: taskTitle.trim(),
-        projectId: projectId!,
+        description: taskDescription.trim(),
+        projectId,
         status: selectedStatus,
       });
 
       setTasks((prev) => [...prev, newTask]);
+
       setTaskTitle('');
+      setTaskDescription('');
       setOpen(false);
     } catch (err) {
       console.error(err);
     }
   };
 
-  const handleDelete = (taskId: string) => {
-    setTasks((prev) => prev.filter((task) => task._id !== taskId));
+  const handleDelete = async (taskId: string) => {
+    try {
+      await deleteTask(taskId);
+
+      setTasks((prev) => prev.filter((task) => task._id !== taskId));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleDetailSave = async () => {
@@ -81,6 +102,7 @@ export default function ProjectDetailsPage() {
     try {
       const updatedTask = await updateTask(selectedTask._id, {
         title: editedTitle,
+        description: editedDescription,
       });
 
       setTasks((prev) =>
@@ -91,6 +113,7 @@ export default function ProjectDetailsPage() {
 
       setSelectedTask(null);
       setEditedTitle('');
+      setEditedDescription('');
     } catch (err) {
       console.error(err);
     }
@@ -123,17 +146,6 @@ export default function ProjectDetailsPage() {
 
   return (
     <PageContainer title="Project Board">
-      <Typography
-        sx={{
-          fontSize: 12,
-          fontWeight: 600,
-          color: theme.textSecondary,
-          mb: 3,
-        }}
-      >
-        Project: {projectId}
-      </Typography>
-
       <DndContextWrapper
         onDragStart={(id) => setActiveId(id)}
         onDragEnd={async (event) => {
@@ -142,22 +154,14 @@ export default function ProjectDetailsPage() {
         }}
         overlay={
           activeTask ? (
-            <Paper
-              sx={{
-                p: 1.5,
-                borderRadius: '6px',
-                boxShadow: 6,
-              }}
-            >
-              {activeTask.title}
-            </Paper>
+            <Paper sx={{ px: 2, py: 1.5 }}>{activeTask.title}</Paper>
           ) : null
         }
       >
         <Box
           sx={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
             gap: 3,
           }}
         >
@@ -170,7 +174,6 @@ export default function ProjectDetailsPage() {
                 col={col}
                 tasks={tasks}
                 theme={theme}
-                activeId={activeId}
                 onAddTask={() => {
                   setSelectedStatus(col.id);
                   setOpen(true);
@@ -186,6 +189,7 @@ export default function ProjectDetailsPage() {
                     onClick={(task) => {
                       setSelectedTask(task);
                       setEditedTitle(task.title);
+                      setEditedDescription(task.description || '');
                     }}
                   />
                 ))}
@@ -217,9 +221,21 @@ export default function ProjectDetailsPage() {
           label="Task Title"
           value={taskTitle}
           onChange={(e) => setTaskTitle(e.target.value)}
+          margin="normal"
+          InputLabelProps={{ shrink: true }}
+        />
+
+        <TextField
+          fullWidth
+          label="Description"
+          multiline
+          rows={3}
+          value={taskDescription}
+          onChange={(e) => setTaskDescription(e.target.value)}
+          margin="normal"
+          InputLabelProps={{ shrink: true }}
         />
       </AppDialog>
-
       <Dialog
         open={Boolean(selectedTask)}
         onClose={() => setSelectedTask(null)}
@@ -227,16 +243,32 @@ export default function ProjectDetailsPage() {
         maxWidth="sm"
       >
         <DialogTitle>Task Details</DialogTitle>
-        <DialogContent>
+
+        <DialogContent sx={{ pt: 2 }}>
           <TextField
             fullWidth
             label="Title"
             value={editedTitle}
             onChange={(e) => setEditedTitle(e.target.value)}
+            margin="normal"
+            InputLabelProps={{ shrink: true }}
+          />
+
+          <TextField
+            fullWidth
+            label="Description"
+            multiline
+            rows={3}
+            value={editedDescription}
+            onChange={(e) => setEditedDescription(e.target.value)}
+            margin="normal"
+            InputLabelProps={{ shrink: true }}
           />
         </DialogContent>
+
         <DialogActions>
           <Button onClick={() => setSelectedTask(null)}>Cancel</Button>
+
           <Button
             variant="contained"
             onClick={handleDetailSave}
@@ -256,7 +288,6 @@ type DroppableColumnProps = {
   children: React.ReactNode;
   onAddTask: () => void;
   theme: typeof COLORS.light;
-  activeId: string | null;
 };
 
 function DroppableColumn({
@@ -265,7 +296,6 @@ function DroppableColumn({
   children,
   onAddTask,
   theme,
-  activeId,
 }: DroppableColumnProps) {
   const { setNodeRef } = useDroppable({ id: col.id });
 
@@ -282,25 +312,18 @@ function DroppableColumn({
         borderRadius: '8px',
         border: `1px solid ${theme.border}`,
         borderTop: `3px solid ${accentColor}`,
+        minHeight: 450,
       }}
     >
       <Box sx={{ px: 2, py: 1.5, display: 'flex', gap: 1 }}>
-        <Typography
-          sx={{
-            fontSize: 12,
-            fontWeight: 700,
-            color: theme.textSecondary,
-          }}
-        >
+        <Typography sx={{ fontSize: 12, fontWeight: 700 }}>
           {col.title}
         </Typography>
 
-        <Typography fontSize={11} color={theme.textSecondary}>
-          {columnTaskCount}
-        </Typography>
+        <Typography fontSize={11}>{columnTaskCount}</Typography>
       </Box>
 
-      <Box sx={{ flex: 1, p: 1.5 }}>{children}</Box>
+      <Box sx={{ flex: 1, p: 1.5, overflowY: 'auto' }}>{children}</Box>
 
       <Box sx={{ p: 1.5 }}>
         <Button onClick={onAddTask} fullWidth>
@@ -338,30 +361,53 @@ function DraggableTask({
       ref={setNodeRef}
       {...listeners}
       {...attributes}
+      elevation={1}
       sx={{
-        p: 1.5,
-        borderRadius: '6px',
+        px: 1.5,
+        py: 1.2,
+        borderRadius: '8px',
         border: `1px solid ${theme.border}`,
-        borderLeft: `3px solid ${accentColor}`,
+        borderLeft: `4px solid ${accentColor}`,
         mb: 1.5,
         cursor: 'grab',
         visibility: isDragging ? 'hidden' : 'visible',
       }}
     >
-      <Typography
-        onClick={() => onClick(task)}
-        sx={{ fontSize: 13, fontWeight: 500 }}
-      >
-        {task.title}
-      </Typography>
+      <Box display="flex" alignItems="flex-start">
+        <Box flex={1}>
+          <Typography
+            onClick={() => onClick(task)}
+            sx={{
+              fontSize: 13,
+              fontWeight: 600,
+              lineHeight: 1.4,
+              cursor: 'pointer',
+            }}
+          >
+            {task.title}
+          </Typography>
 
-      <IconButton
-        size="small"
-        onClick={() => onDelete(task._id)}
-        sx={{ float: 'right' }}
-      >
-        <CloseIcon fontSize="small" />
-      </IconButton>
+          {task.description && (
+            <Typography
+              sx={{
+                fontSize: 11,
+                color: theme.textSecondary,
+                mt: 0.5,
+              }}
+            >
+              {task.description}
+            </Typography>
+          )}
+        </Box>
+
+        <IconButton
+          size="small"
+          onClick={() => onDelete(task._id)}
+          sx={{ p: 0.5 }}
+        >
+          <CloseIcon fontSize="small" />
+        </IconButton>
+      </Box>
     </Paper>
   );
 }

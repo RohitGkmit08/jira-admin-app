@@ -10,3 +10,16 @@ export const createProject = async (data: { name: string }) => {
     body: JSON.stringify(data),
   });
 };
+
+export const deleteProject = async (id: string) => {
+  return await apiFetch(`/projects/${id}`, {
+    method: 'DELETE',
+  });
+};
+
+export const updateProject = async (id: string, data: { name: string }) => {
+  return await apiFetch(`/projects/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+};

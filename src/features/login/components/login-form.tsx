@@ -1,11 +1,12 @@
-import { Button, Stack } from '@mui/material';
+import { Button, Stack, Alert } from '@mui/material';
 import type { FormEvent } from 'react';
 
 import Input from '../../../components/common/input';
 import { useLogin } from '../hooks/use-login';
 
 const LoginForm = () => {
-  const { form, errors, handleChange, handleSubmit, loading } = useLogin();
+  const { form, errors, apiError, handleChange, handleSubmit, loading } =
+    useLogin();
 
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -15,6 +16,8 @@ const LoginForm = () => {
   return (
     <form onSubmit={onSubmit}>
       <Stack spacing={2}>
+        {apiError && <Alert severity="error">{apiError}</Alert>}
+
         <Input
           label="Email"
           name="email"
