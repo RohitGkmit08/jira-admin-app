@@ -96,7 +96,7 @@ export default function ProjectsPage() {
 
       await deleteProject(deleteId);
 
-      setProjects((prev) => prev.filter((p) => p._id !== deleteId));
+      setProjects((prev) => prev.filter((project) => project._id !== deleteId));
 
       setDeleteId(null);
     } catch (err) {

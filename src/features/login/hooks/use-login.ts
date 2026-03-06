@@ -24,10 +24,8 @@ export function useLogin() {
 
     setForm((prev) => ({ ...prev, [name]: value }));
 
-    // clear field validation error
     setErrors((prev) => ({ ...prev, [name]: '' }));
 
-    // clear API error when user edits
     if (apiError) setApiError('');
   };
 

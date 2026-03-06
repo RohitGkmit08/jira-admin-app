@@ -126,7 +126,7 @@ export default function ProjectDetailsPage() {
     const taskId = active.id as string;
     const newStatus = over.id as Status;
 
-    const task = tasks.find((t) => t._id === taskId);
+    const task = tasks.find((task) => task._id === taskId);
     if (!task || task.status === newStatus) return;
 
     try {
