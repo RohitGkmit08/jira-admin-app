@@ -2,11 +2,12 @@ import { Box, Typography, Button } from '@mui/material';
 import { useDroppable } from '@dnd-kit/core';
 
 import { COLORS } from '../../../theme/colors';
-import { STATUS_COLORS, type Task, type Status } from '../constants';
+import { STATUS_COLORS, type Status } from '../constants';
+import type { ITask } from '../../../types';
 
 type DroppableColumnProps = {
   col: { id: Status; title: string };
-  tasks: Task[];
+  tasks: ITask[];
   children: React.ReactNode;
   onAddTask: () => void;
   theme: typeof COLORS.light;
@@ -34,7 +35,7 @@ export default function DroppableColumn({
         borderRadius: '8px',
         border: `1px solid ${theme.border}`,
         borderTop: `3px solid ${accentColor}`,
-        minHeight: 450,
+        minHeight: { xs: 220, sm: 320, md: 450 },
       }}
     >
       <Box sx={{ px: 2, py: 1.5, display: 'flex', gap: 1 }}>

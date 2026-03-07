@@ -1,10 +1,11 @@
 import {
   DndContext,
   DragOverlay,
-  closestCenter,
+  rectIntersection,
   useSensor,
   useSensors,
   PointerSensor,
+  TouchSensor,
   type DragEndEvent,
 } from '@dnd-kit/core';
 
@@ -25,12 +26,15 @@ export default function DndContextWrapper({
     useSensor(PointerSensor, {
       activationConstraint: { distance: 8 },
     }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 250, tolerance: 5 },
+    }),
   );
 
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCenter}
+      collisionDetection={rectIntersection}
       onDragStart={(event) => onDragStart?.(event.active.id as string)}
       onDragEnd={onDragEnd}
     >

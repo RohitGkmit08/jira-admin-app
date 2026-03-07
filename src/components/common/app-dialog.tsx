@@ -24,7 +24,9 @@ export default function AppDialog({
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>{title}</DialogTitle>
 
-      <DialogContent>{children}</DialogContent>
+      <DialogContent sx={{ maxHeight: '70vh', overflowY: 'auto' }}>
+        {children}
+      </DialogContent>
 
       <DialogActions>{actions}</DialogActions>
     </Dialog>
