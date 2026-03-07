@@ -1,12 +1,23 @@
-import { Button, Stack, Alert } from '@mui/material';
+import { useEffect } from 'react';
+import { Stack, Alert } from '@mui/material';
 import type { FormEvent } from 'react';
+import { useSnackbar } from 'notistack';
 
 import Input from '../../../components/common/input';
+import PasswordInput from '../../../components/common/input/password-input';
+import LoadingButton from '../../../components/common/loading-button';
 import { useLogin } from '../hooks/use-login';
 
 const LoginForm = () => {
+  const { enqueueSnackbar } = useSnackbar();
   const { form, errors, apiError, handleChange, handleSubmit, loading } =
     useLogin();
+
+  useEffect(() => {
+    if (apiError) {
+      enqueueSnackbar(apiError, { variant: 'error' });
+    }
+  }, [apiError, enqueueSnackbar]);
 
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -28,20 +39,24 @@ const LoginForm = () => {
           autoComplete="email"
         />
 
-        <Input
+        <PasswordInput
           label="Password"
           name="password"
-          type="password"
           value={form.password}
           onChange={handleChange}
           error={Boolean(errors.password)}
           helperText={errors.password}
-          autoComplete="password"
+          autoComplete="current-password"
         />
 
-        <Button type="submit" variant="contained" disabled={loading} fullWidth>
+        <LoadingButton
+          type="submit"
+          variant="contained"
+          loading={loading}
+          fullWidth
+        >
           {loading ? 'Signing in...' : 'Sign in'}
-        </Button>
+        </LoadingButton>
       </Stack>
     </form>
   );

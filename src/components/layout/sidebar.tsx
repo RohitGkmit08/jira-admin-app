@@ -15,6 +15,7 @@ import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 
 import { ROUTES } from '../../constants/routes';
+import { authService } from '../../services/auth.service';
 
 const drawerWidth = 240;
 
@@ -27,7 +28,7 @@ export default function Sidebar({ mobileOpen, onToggle }: Props) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = authService.getUser();
 
   const isProjectDetails = location.pathname.startsWith(
     ROUTES.APP.PROJECTS + '/',

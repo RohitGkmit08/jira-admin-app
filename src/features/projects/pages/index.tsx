@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSnackbar } from 'notistack';
 import {
   Paper,
   Typography,
@@ -8,7 +9,6 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
   TextField,
   Divider,
   IconButton,
@@ -26,6 +26,11 @@ import {
   updateProject,
 } from '../../../services/project.service';
 import PageContainer from '../../../components/common/page-container';
+import PageHeader from '../../../components/common/page-header';
+import StatCard from '../../../components/common/stat-card';
+import EmptyState from '../../../components/common/empty-state';
+import ConfirmDialog from '../../../components/common/confirm-dialog';
+import FormActions from '../../../components/common/form-actions';
 import { routeHelpers } from '../../../constants/routes';
 
 type Project = {
@@ -51,6 +56,7 @@ export default function ProjectsPage() {
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -59,14 +65,16 @@ export default function ProjectsPage() {
         const data = await getProjects();
         setProjects(data);
       } catch (err) {
-        console.error('Failed to fetch projects', err);
+        const message =
+          err instanceof Error ? err.message : 'Failed to load projects';
+        enqueueSnackbar(message, { variant: 'error' });
       } finally {
         setLoading(false);
       }
     };
 
     fetchProjects();
-  }, []);
+  }, [enqueueSnackbar]);
 
   const handleCreate = async () => {
     if (!projectName.trim()) return;
@@ -81,8 +89,11 @@ export default function ProjectsPage() {
       setProjects((prev) => [newProject, ...prev]);
       setOpen(false);
       setProjectName('');
+      enqueueSnackbar('Project created', { variant: 'success' });
     } catch (err) {
-      console.error('Failed to create project', err);
+      const message =
+        err instanceof Error ? err.message : 'Failed to create project';
+      enqueueSnackbar(message, { variant: 'error' });
     } finally {
       setCreateLoading(false);
     }
@@ -99,8 +110,11 @@ export default function ProjectsPage() {
       setProjects((prev) => prev.filter((project) => project._id !== deleteId));
 
       setDeleteId(null);
+      enqueueSnackbar('Project deleted', { variant: 'success' });
     } catch (err) {
-      console.error('Delete failed', err);
+      const message =
+        err instanceof Error ? err.message : 'Failed to delete project';
+      enqueueSnackbar(message, { variant: 'error' });
     } finally {
       setDeleteLoading(false);
     }
@@ -122,8 +136,11 @@ export default function ProjectsPage() {
 
       setEditId(null);
       setEditName('');
+      enqueueSnackbar('Project updated', { variant: 'success' });
     } catch (err) {
-      console.error('Update failed', err);
+      const message =
+        err instanceof Error ? err.message : 'Failed to update project';
+      enqueueSnackbar(message, { variant: 'error' });
     } finally {
       setUpdateLoading(false);
     }
@@ -136,43 +153,24 @@ export default function ProjectsPage() {
 
   return (
     <PageContainer title="Projects">
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={3}
-      >
-        <Box>
-          <Typography variant="h6" fontWeight={700}>
-            All Projects
-          </Typography>
-
-          <Typography variant="body2" color="text.secondary">
-            Create and manage your projects
-          </Typography>
-        </Box>
-
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setOpen(true)}
-          sx={{ height: 40, textTransform: 'none' }}
-        >
-          Create Project
-        </Button>
-      </Box>
-
-      <Divider sx={{ mb: 3 }} />
+      <PageHeader
+        title="All Projects"
+        subtitle="Create and manage your projects"
+        action={
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setOpen(true)}
+            sx={{ height: 40, textTransform: 'none' }}
+          >
+            Create Project
+          </Button>
+        }
+      />
 
       <Box display="flex" gap={2} flexWrap="wrap" mb={3}>
         {stats.map(({ label, length }) => (
-          <Paper key={label} variant="outlined" sx={{ p: 2, minWidth: 160 }}>
-            <Typography variant="body2" color="text.secondary">
-              {label}
-            </Typography>
-
-            <Typography variant="h4">{length}</Typography>
-          </Paper>
+          <StatCard key={label} label={label} value={length} />
         ))}
       </Box>
 
@@ -185,21 +183,13 @@ export default function ProjectsPage() {
             <CircularProgress />
           </Box>
         ) : projects.length === 0 ? (
-          <Box
-            sx={{
-              py: 6,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 1,
-            }}
-          >
-            <FolderOpenIcon sx={{ fontSize: 40, opacity: 0.4 }} />
-            <Typography color="text.secondary">No projects yet</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Click "Create Project" to get started
-            </Typography>
-          </Box>
+          <EmptyState
+            icon={
+              <FolderOpenIcon sx={{ fontSize: 40, opacity: 0.4 }} />
+            }
+            title="No projects yet"
+            description='Click "Create Project" to get started'
+          />
         ) : (
           <Box>
             {projects.map((project, index) => (
@@ -283,17 +273,13 @@ export default function ProjectsPage() {
           />
         </DialogContent>
 
-        <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
-
-          <Button
-            variant="contained"
-            onClick={handleCreate}
-            disabled={!projectName.trim() || createLoading}
-          >
-            {createLoading ? <CircularProgress size={20} /> : 'Create'}
-          </Button>
-        </DialogActions>
+        <FormActions
+          onCancel={() => setOpen(false)}
+          submitLabel="Create"
+          onSubmit={handleCreate}
+          loading={createLoading}
+          disabled={!projectName.trim()}
+        />
       </Dialog>
 
       {/* Edit Project */}
@@ -315,45 +301,25 @@ export default function ProjectsPage() {
           />
         </DialogContent>
 
-        <DialogActions>
-          <Button onClick={() => setEditId(null)}>Cancel</Button>
-
-          <Button
-            variant="contained"
-            onClick={handleUpdate}
-            disabled={!editName.trim() || updateLoading}
-          >
-            {updateLoading ? <CircularProgress size={20} /> : 'Save'}
-          </Button>
-        </DialogActions>
+        <FormActions
+          onCancel={() => setEditId(null)}
+          submitLabel="Save"
+          onSubmit={handleUpdate}
+          loading={updateLoading}
+          disabled={!editName.trim()}
+        />
       </Dialog>
 
-      {/* Delete Project */}
-      <Dialog
+      <ConfirmDialog
         open={Boolean(deleteId)}
         onClose={() => setDeleteId(null)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Delete Project?</DialogTitle>
-
-        <DialogContent>
-          <Typography>Are you sure you want to delete this project?</Typography>
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={() => setDeleteId(null)}>Cancel</Button>
-
-          <Button
-            color="error"
-            variant="contained"
-            onClick={handleDelete}
-            disabled={deleteLoading}
-          >
-            {deleteLoading ? <CircularProgress size={20} /> : 'Delete'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        title="Delete Project?"
+        message="Are you sure you want to delete this project?"
+        confirmLabel="Delete"
+        onConfirm={handleDelete}
+        loading={deleteLoading}
+        confirmColor="error"
+      />
     </PageContainer>
   );
 }

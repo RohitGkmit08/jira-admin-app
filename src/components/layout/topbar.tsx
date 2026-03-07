@@ -11,9 +11,11 @@ import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useNavigate } from 'react-router-dom';
+import { useSnackbar } from 'notistack';
 
 import { ROUTES } from '../../constants/routes';
 import { useColorMode } from '../../providers';
+import { authService } from '../../services/auth.service';
 
 type Props = {
   onMenuClick: () => void;
@@ -21,12 +23,14 @@ type Props = {
 
 export default function Topbar({ onMenuClick }: Props) {
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
   const { mode, toggleMode } = useColorMode();
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = authService.getUser();
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
+    authService.removeAuth();
+    enqueueSnackbar('Logged out successfully', { variant: 'success' });
     navigate(ROUTES.AUTH.LOGIN, { replace: true });
   };
 
@@ -76,7 +80,7 @@ export default function Topbar({ onMenuClick }: Props) {
               fontSize: 13,
             }}
           >
-            {user?.role || 'User'}
+            {user?.role ?? 'User'}
           </Typography>
 
           <Tooltip title={mode === 'light' ? 'Dark mode' : 'Light mode'}>

@@ -1,4 +1,4 @@
-import { COLORS } from '../../constants/theme';
+import { COLORS } from '../../theme/colors';
 
 export type Status = 'todo' | 'in_progress' | 'review' | 'done';
 

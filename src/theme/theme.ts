@@ -1,6 +1,6 @@
 import { createTheme, type PaletteMode } from '@mui/material/styles';
 
-import { COLORS } from '../constants/theme';
+import { COLORS } from './colors';
 
 import { typography } from './typography';
 

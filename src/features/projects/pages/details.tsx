@@ -1,26 +1,23 @@
 import { useState, useEffect } from 'react';
 import {
   Box,
-  Typography,
   Paper,
-  Button,
   TextField,
   useTheme,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  CircularProgress,
 } from '@mui/material';
 import { useParams } from 'react-router-dom';
-import { useDraggable, useDroppable, type DragEndEvent } from '@dnd-kit/core';
-import CloseIcon from '@mui/icons-material/Close';
+import { useSnackbar } from 'notistack';
+import type { DragEndEvent } from '@dnd-kit/core';
 
 import PageContainer from '../../../components/common/page-container';
 import AppDialog from '../../../components/common/app-dialog';
 import DndContextWrapper from '../../../components/common/dnd-context';
-import { COLORS } from '../../../constants/theme';
-import { COLUMNS, STATUS_COLORS, type Task, type Status } from '../constants';
+import FormActions from '../../../components/common/form-actions';
+import DraggableTask from '../components/draggable-task';
+import DroppableColumn from '../components/droppable-column';
+import { COLORS } from '../../../theme/colors';
+import { COLUMNS, type Task, type Status } from '../constants';
 import {
   getTasks,
   createTask,
@@ -30,13 +27,17 @@ import {
 
 export default function ProjectDetailsPage() {
   const { projectId } = useParams<{ projectId: string }>();
+  const { enqueueSnackbar } = useSnackbar();
 
   const muiTheme = useTheme();
   const theme = muiTheme.palette.mode === 'dark' ? COLORS.dark : COLORS.light;
 
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasksLoading, setTasksLoading] = useState(true);
 
   const [open, setOpen] = useState(false);
+  const [createTaskLoading, setCreateTaskLoading] = useState(false);
+  const [saveTaskLoading, setSaveTaskLoading] = useState(false);
 
   const [taskTitle, setTaskTitle] = useState('');
   const [taskDescription, setTaskDescription] = useState('');
@@ -55,20 +56,26 @@ export default function ProjectDetailsPage() {
 
     const fetchTasks = async () => {
       try {
+        setTasksLoading(true);
         const data = await getTasks(projectId);
         setTasks(data);
       } catch (err) {
-        console.error(err);
+        const message =
+          err instanceof Error ? err.message : 'Failed to load tasks';
+        enqueueSnackbar(message, { variant: 'error' });
+      } finally {
+        setTasksLoading(false);
       }
     };
 
     fetchTasks();
-  }, [projectId]);
+  }, [projectId, enqueueSnackbar]);
 
   const handleCreate = async () => {
     if (!taskTitle.trim() || !projectId) return;
 
     try {
+      setCreateTaskLoading(true);
       const newTask = await createTask({
         title: taskTitle.trim(),
         description: taskDescription.trim(),
@@ -81,8 +88,13 @@ export default function ProjectDetailsPage() {
       setTaskTitle('');
       setTaskDescription('');
       setOpen(false);
+      enqueueSnackbar('Task added', { variant: 'success' });
     } catch (err) {
-      console.error(err);
+      const message =
+        err instanceof Error ? err.message : 'Failed to add task';
+      enqueueSnackbar(message, { variant: 'error' });
+    } finally {
+      setCreateTaskLoading(false);
     }
   };
 
@@ -91,8 +103,11 @@ export default function ProjectDetailsPage() {
       await deleteTask(taskId);
 
       setTasks((prev) => prev.filter((task) => task._id !== taskId));
+      enqueueSnackbar('Task deleted', { variant: 'success' });
     } catch (err) {
-      console.error(err);
+      const message =
+        err instanceof Error ? err.message : 'Failed to delete task';
+      enqueueSnackbar(message, { variant: 'error' });
     }
   };
 
@@ -100,6 +115,7 @@ export default function ProjectDetailsPage() {
     if (!selectedTask) return;
 
     try {
+      setSaveTaskLoading(true);
       const updatedTask = await updateTask(selectedTask._id, {
         title: editedTitle,
         description: editedDescription,
@@ -114,8 +130,13 @@ export default function ProjectDetailsPage() {
       setSelectedTask(null);
       setEditedTitle('');
       setEditedDescription('');
+      enqueueSnackbar('Task updated', { variant: 'success' });
     } catch (err) {
-      console.error(err);
+      const message =
+        err instanceof Error ? err.message : 'Failed to update task';
+      enqueueSnackbar(message, { variant: 'error' });
+    } finally {
+      setSaveTaskLoading(false);
     }
   };
 
@@ -137,8 +158,11 @@ export default function ProjectDetailsPage() {
       setTasks((prev) =>
         prev.map((task) => (task._id === taskId ? updatedTask : task)),
       );
+      enqueueSnackbar('Status updated', { variant: 'success' });
     } catch (err) {
-      console.error(err);
+      const message =
+        err instanceof Error ? err.message : 'Failed to update status';
+      enqueueSnackbar(message, { variant: 'error' });
     }
   };
 
@@ -165,37 +189,52 @@ export default function ProjectDetailsPage() {
             gap: 3,
           }}
         >
-          {COLUMNS.map((col) => {
-            const columnTasks = tasks.filter((task) => task.status === col.id);
+          {tasksLoading ? (
+            <Box
+              sx={{
+                gridColumn: '1 / -1',
+                py: 6,
+                display: 'flex',
+                justifyContent: 'center',
+              }}
+            >
+              <CircularProgress />
+            </Box>
+          ) : (
+            COLUMNS.map((col) => {
+              const columnTasks = tasks.filter(
+                (task) => task.status === col.id,
+              );
 
-            return (
-              <DroppableColumn
-                key={col.id}
-                col={col}
-                tasks={tasks}
-                theme={theme}
-                onAddTask={() => {
-                  setSelectedStatus(col.id);
-                  setOpen(true);
-                }}
-              >
-                {columnTasks.map((task) => (
-                  <DraggableTask
-                    key={task._id}
-                    task={task}
-                    theme={theme}
-                    activeId={activeId}
-                    onDelete={handleDelete}
-                    onClick={(task) => {
-                      setSelectedTask(task);
-                      setEditedTitle(task.title);
-                      setEditedDescription(task.description || '');
-                    }}
-                  />
-                ))}
-              </DroppableColumn>
-            );
-          })}
+              return (
+                <DroppableColumn
+                  key={col.id}
+                  col={col}
+                  tasks={tasks}
+                  theme={theme}
+                  onAddTask={() => {
+                    setSelectedStatus(col.id);
+                    setOpen(true);
+                  }}
+                >
+                  {columnTasks.map((task) => (
+                    <DraggableTask
+                      key={task._id}
+                      task={task}
+                      theme={theme}
+                      activeId={activeId}
+                      onDelete={handleDelete}
+                      onClick={(task) => {
+                        setSelectedTask(task);
+                        setEditedTitle(task.title);
+                        setEditedDescription(task.description || '');
+                      }}
+                    />
+                  ))}
+                </DroppableColumn>
+              );
+            })
+          )}
         </Box>
       </DndContextWrapper>
 
@@ -204,16 +243,13 @@ export default function ProjectDetailsPage() {
         onClose={() => setOpen(false)}
         title={`Add task to ${selectedStatus}`}
         actions={
-          <>
-            <Button onClick={() => setOpen(false)}>Cancel</Button>
-            <Button
-              variant="contained"
-              onClick={handleCreate}
-              disabled={!taskTitle.trim()}
-            >
-              Create
-            </Button>
-          </>
+          <FormActions
+            onCancel={() => setOpen(false)}
+            submitLabel="Create"
+            onSubmit={handleCreate}
+            loading={createTaskLoading}
+            disabled={!taskTitle.trim()}
+          />
         }
       >
         <TextField
@@ -236,178 +272,40 @@ export default function ProjectDetailsPage() {
           InputLabelProps={{ shrink: true }}
         />
       </AppDialog>
-      <Dialog
+      <AppDialog
         open={Boolean(selectedTask)}
         onClose={() => setSelectedTask(null)}
-        fullWidth
-        maxWidth="sm"
-      >
-        <DialogTitle>Task Details</DialogTitle>
-
-        <DialogContent sx={{ pt: 2 }}>
-          <TextField
-            fullWidth
-            label="Title"
-            value={editedTitle}
-            onChange={(e) => setEditedTitle(e.target.value)}
-            margin="normal"
-            InputLabelProps={{ shrink: true }}
-          />
-
-          <TextField
-            fullWidth
-            label="Description"
-            multiline
-            rows={3}
-            value={editedDescription}
-            onChange={(e) => setEditedDescription(e.target.value)}
-            margin="normal"
-            InputLabelProps={{ shrink: true }}
-          />
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={() => setSelectedTask(null)}>Cancel</Button>
-
-          <Button
-            variant="contained"
-            onClick={handleDetailSave}
+        title="Task Details"
+        actions={
+          <FormActions
+            onCancel={() => setSelectedTask(null)}
+            submitLabel="Save"
+            onSubmit={handleDetailSave}
+            loading={saveTaskLoading}
             disabled={!editedTitle.trim()}
-          >
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+          />
+        }
+      >
+        <TextField
+          fullWidth
+          label="Title"
+          value={editedTitle}
+          onChange={(e) => setEditedTitle(e.target.value)}
+          margin="normal"
+          InputLabelProps={{ shrink: true }}
+        />
+
+        <TextField
+          fullWidth
+          label="Description"
+          multiline
+          rows={3}
+          value={editedDescription}
+          onChange={(e) => setEditedDescription(e.target.value)}
+          margin="normal"
+          InputLabelProps={{ shrink: true }}
+        />
+      </AppDialog>
     </PageContainer>
-  );
-}
-
-type DroppableColumnProps = {
-  col: { id: Status; title: string };
-  tasks: Task[];
-  children: React.ReactNode;
-  onAddTask: () => void;
-  theme: typeof COLORS.light;
-};
-
-function DroppableColumn({
-  col,
-  tasks,
-  children,
-  onAddTask,
-  theme,
-}: DroppableColumnProps) {
-  const { setNodeRef } = useDroppable({ id: col.id });
-
-  const accentColor = STATUS_COLORS[col.id];
-  const columnTaskCount = tasks.filter((task) => task.status === col.id).length;
-
-  return (
-    <Box
-      ref={setNodeRef}
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: theme.columnBg,
-        borderRadius: '8px',
-        border: `1px solid ${theme.border}`,
-        borderTop: `3px solid ${accentColor}`,
-        minHeight: 450,
-      }}
-    >
-      <Box sx={{ px: 2, py: 1.5, display: 'flex', gap: 1 }}>
-        <Typography sx={{ fontSize: 12, fontWeight: 700 }}>
-          {col.title}
-        </Typography>
-
-        <Typography fontSize={11}>{columnTaskCount}</Typography>
-      </Box>
-
-      <Box sx={{ flex: 1, p: 1.5, overflowY: 'auto' }}>{children}</Box>
-
-      <Box sx={{ p: 1.5 }}>
-        <Button onClick={onAddTask} fullWidth>
-          + Add Task
-        </Button>
-      </Box>
-    </Box>
-  );
-}
-
-type DraggableTaskProps = {
-  task: Task;
-  theme: typeof COLORS.light;
-  activeId: string | null;
-  onDelete: (id: string) => void;
-  onClick: (task: Task) => void;
-};
-
-function DraggableTask({
-  task,
-  theme,
-  activeId,
-  onDelete,
-  onClick,
-}: DraggableTaskProps) {
-  const { setNodeRef, listeners, attributes } = useDraggable({
-    id: task._id,
-  });
-
-  const accentColor = STATUS_COLORS[task.status];
-  const isDragging = activeId === task._id;
-
-  return (
-    <Paper
-      ref={setNodeRef}
-      {...listeners}
-      {...attributes}
-      elevation={1}
-      sx={{
-        px: 1.5,
-        py: 1.2,
-        borderRadius: '8px',
-        border: `1px solid ${theme.border}`,
-        borderLeft: `4px solid ${accentColor}`,
-        mb: 1.5,
-        cursor: 'grab',
-        visibility: isDragging ? 'hidden' : 'visible',
-      }}
-    >
-      <Box display="flex" alignItems="flex-start">
-        <Box flex={1}>
-          <Typography
-            onClick={() => onClick(task)}
-            sx={{
-              fontSize: 13,
-              fontWeight: 600,
-              lineHeight: 1.4,
-              cursor: 'pointer',
-            }}
-          >
-            {task.title}
-          </Typography>
-
-          {task.description && (
-            <Typography
-              sx={{
-                fontSize: 11,
-                color: theme.textSecondary,
-                mt: 0.5,
-              }}
-            >
-              {task.description}
-            </Typography>
-          )}
-        </Box>
-
-        <IconButton
-          size="small"
-          onClick={() => onDelete(task._id)}
-          sx={{ p: 0.5 }}
-        >
-          <CloseIcon fontSize="small" />
-        </IconButton>
-      </Box>
-    </Paper>
   );
 }

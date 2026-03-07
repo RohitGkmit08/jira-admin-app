@@ -20,7 +20,6 @@ export const router = createBrowserRouter([
     path: ROUTES.AUTH.LOGIN,
     element: <LoginPage />,
   },
-
   {
     element: <RequireAuth />,
     children: [

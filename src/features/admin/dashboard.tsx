@@ -5,13 +5,12 @@ import {
   Paper,
   Stack,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  CircularProgress,
 } from '@mui/material';
+import { useSnackbar } from 'notistack';
 
 import { apiFetch } from '../../api';
+import ConfirmDialog from '../../components/common/confirm-dialog';
 
 type AdminUser = {
   _id: string;
@@ -20,30 +19,30 @@ type AdminUser = {
 };
 
 export default function AdminDashboard() {
+  const { enqueueSnackbar } = useSnackbar();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [open, setOpen] = useState(false);
+  const [usersLoading, setUsersLoading] = useState(true);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
-    let mounted = true;
-
     const loadUsers = async () => {
       try {
+        setUsersLoading(true);
         const data = await apiFetch('/users');
-        if (mounted) {
-          setUsers(data);
-        }
+        setUsers(data);
       } catch (error) {
-        console.error('Failed to fetch users', error);
+        const message =
+          error instanceof Error ? error.message : 'Failed to load users';
+        enqueueSnackbar(message, { variant: 'error' });
+      } finally {
+        setUsersLoading(false);
       }
     };
 
     loadUsers();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  }, [enqueueSnackbar]);
 
   const handleDeleteClick = (user: AdminUser) => {
     setSelectedUser(user);
@@ -54,16 +53,21 @@ export default function AdminDashboard() {
     if (!selectedUser) return;
 
     try {
+      setDeleteLoading(true);
       await apiFetch(`/users/${selectedUser._id}`, {
         method: 'DELETE',
       });
 
       setUsers((prev) => prev.filter((u) => u._id !== selectedUser._id));
-    } catch (error) {
-      console.error('Failed to delete user', error);
-    } finally {
       setOpen(false);
       setSelectedUser(null);
+      enqueueSnackbar('User deleted', { variant: 'success' });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to delete user';
+      enqueueSnackbar(message, { variant: 'error' });
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -83,57 +87,56 @@ export default function AdminDashboard() {
           Users ({users.length})
         </Typography>
 
-        <Stack spacing={1}>
-          {users.map((user) => (
-            <Box
-              key={user._id}
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                borderBottom: '1px solid #eee',
-                pb: 1,
-              }}
-            >
-              <Typography>
-                {user.email} — {user.role}
-              </Typography>
-
-              <Button
-                color="error"
-                variant="outlined"
-                size="small"
-                onClick={() => handleDeleteClick(user)}
+        {usersLoading ? (
+          <Box sx={{ py: 6, display: 'flex', justifyContent: 'center' }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Stack spacing={1}>
+            {users.map((user) => (
+              <Box
+                key={user._id}
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  borderBottom: '1px solid #eee',
+                  pb: 1,
+                }}
               >
-                Delete
-              </Button>
-            </Box>
-          ))}
-        </Stack>
+                <Typography>
+                  {user.email} — {user.role}
+                </Typography>
+
+                <Button
+                  color="error"
+                  variant="outlined"
+                  size="small"
+                  onClick={() => handleDeleteClick(user)}
+                >
+                  Delete
+                </Button>
+              </Box>
+            ))}
+          </Stack>
+        )}
       </Paper>
 
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Delete User</DialogTitle>
-
-        <DialogContent>
-          <Typography>
+      <ConfirmDialog
+        open={open}
+        onClose={handleClose}
+        title="Delete User"
+        message={
+          <>
             Are you sure you want to delete{' '}
             <strong>{selectedUser?.email}</strong>?
-          </Typography>
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-
-          <Button
-            color="error"
-            variant="contained"
-            onClick={handleConfirmDelete}
-          >
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </>
+        }
+        confirmLabel="Delete"
+        onConfirm={handleConfirmDelete}
+        loading={deleteLoading}
+        confirmColor="error"
+      />
     </Box>
   );
 }
