@@ -13,6 +13,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import { useNavigate } from 'react-router-dom';
 
 import { ROUTES } from '../../constants/routes';
+import { STORAGE_KEYS } from '../../constants/storage';
 import { useColorMode } from '../../providers';
 
 type Props = {
@@ -23,10 +24,10 @@ export default function Topbar({ onMenuClick }: Props) {
   const navigate = useNavigate();
   const { mode, toggleMode } = useColorMode();
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = JSON.parse(localStorage.getItem(STORAGE_KEYS.USER) || '{}');
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
+    localStorage.removeItem(STORAGE_KEYS.USER);
     navigate(ROUTES.AUTH.LOGIN, { replace: true });
   };
 

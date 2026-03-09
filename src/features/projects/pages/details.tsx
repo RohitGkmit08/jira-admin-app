@@ -6,26 +6,22 @@ import {
   Button,
   TextField,
   useTheme,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
 } from '@mui/material';
 import { useParams } from 'react-router-dom';
-import { useDraggable, useDroppable, type DragEndEvent } from '@dnd-kit/core';
-import CloseIcon from '@mui/icons-material/Close';
+import type { DragEndEvent } from '@dnd-kit/core';
 
 import PageContainer from '../../../components/common/page-container';
 import AppDialog from '../../../components/common/app-dialog';
-import DndContextWrapper from '../../../components/common/dnd-context';
+import DndContextWrapper from '../../../components/common/dnd-context-wrapper';
 import { COLORS } from '../../../constants/theme';
-import { COLUMNS, STATUS_COLORS, type Task, type Status } from '../constants';
+import { COLUMNS, type Task, type Status } from '../constants';
 import {
   getTasks,
   createTask,
   updateTask,
 } from '../../../services/task.service';
+import { DroppableColumn } from '../components/droppable-column';
+import { DraggableTask } from '../components/draggable-task';
 
 export default function ProjectDetailsPage() {
   const { projectId } = useParams();
@@ -38,6 +34,7 @@ export default function ProjectDetailsPage() {
   const [selectedStatus, setSelectedStatus] = useState<Status>('todo');
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [editedTitle, setEditedTitle] = useState('');
+  const [editedDescription, setEditedDescription] = useState(''); // ← added
   const [activeId, setActiveId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -75,6 +72,12 @@ export default function ProjectDetailsPage() {
     setTasks((prev) => prev.filter((task) => task._id !== taskId));
   };
 
+  const handleDetailClose = () => {
+    setSelectedTask(null);
+    setEditedTitle('');
+    setEditedDescription('');
+  };
+
   const handleDetailSave = async () => {
     if (!selectedTask) return;
 
@@ -89,8 +92,7 @@ export default function ProjectDetailsPage() {
         ),
       );
 
-      setSelectedTask(null);
-      setEditedTitle('');
+      handleDetailClose();
     } catch (err) {
       console.error(err);
     }
@@ -107,9 +109,7 @@ export default function ProjectDetailsPage() {
     if (!task || task.status === newStatus) return;
 
     try {
-      const updatedTask = await updateTask(taskId, {
-        status: newStatus,
-      });
+      const updatedTask = await updateTask(taskId, { status: newStatus });
 
       setTasks((prev) =>
         prev.map((task) => (task._id === taskId ? updatedTask : task)),
@@ -142,13 +142,7 @@ export default function ProjectDetailsPage() {
         }}
         overlay={
           activeTask ? (
-            <Paper
-              sx={{
-                p: 1.5,
-                borderRadius: '6px',
-                boxShadow: 6,
-              }}
-            >
+            <Paper sx={{ p: 1.5, borderRadius: '6px', boxShadow: 6 }}>
               {activeTask.title}
             </Paper>
           ) : null
@@ -198,7 +192,7 @@ export default function ProjectDetailsPage() {
       <AppDialog
         open={open}
         onClose={() => setOpen(false)}
-        title={`Add task to ${selectedStatus}`}
+        title={`Add task to ${COLUMNS.find((col) => col.id === selectedStatus)?.title}`}
         actions={
           <>
             <Button onClick={() => setOpen(false)}>Cancel</Button>
@@ -220,148 +214,41 @@ export default function ProjectDetailsPage() {
         />
       </AppDialog>
 
-      <Dialog
+      <AppDialog
         open={Boolean(selectedTask)}
-        onClose={() => setSelectedTask(null)}
-        fullWidth
-        maxWidth="sm"
+        onClose={handleDetailClose}
+        title={`PROJ-${selectedTask ? tasks.indexOf(selectedTask) + 1 : ''}`}
+        actions={
+          <>
+            <Button onClick={handleDetailClose}>Cancel</Button>
+            <Button
+              variant="contained"
+              onClick={handleDetailSave}
+              disabled={!editedTitle.trim()}
+            >
+              Save
+            </Button>
+          </>
+        }
       >
-        <DialogTitle>Task Details</DialogTitle>
-        <DialogContent>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <TextField
-            fullWidth
             label="Title"
+            fullWidth
             value={editedTitle}
             onChange={(e) => setEditedTitle(e.target.value)}
           />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setSelectedTask(null)}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={handleDetailSave}
-            disabled={!editedTitle.trim()}
-          >
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+          <TextField
+            label="Description"
+            fullWidth
+            multiline
+            rows={4}
+            value={editedDescription}
+            onChange={(e) => setEditedDescription(e.target.value)}
+            placeholder="Add a description..."
+          />
+        </Box>
+      </AppDialog>
     </PageContainer>
-  );
-}
-
-type DroppableColumnProps = {
-  col: { id: Status; title: string };
-  tasks: Task[];
-  children: React.ReactNode;
-  onAddTask: () => void;
-  theme: typeof COLORS.light;
-  activeId: string | null;
-};
-
-function DroppableColumn({
-  col,
-  tasks,
-  children,
-  onAddTask,
-  theme,
-  activeId,
-}: DroppableColumnProps) {
-  const { setNodeRef } = useDroppable({ id: col.id });
-
-  const accentColor = STATUS_COLORS[col.id];
-  const columnTaskCount = tasks.filter((task) => task.status === col.id).length;
-
-  return (
-    <Box
-      ref={setNodeRef}
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: theme.columnBg,
-        borderRadius: '8px',
-        border: `1px solid ${theme.border}`,
-        borderTop: `3px solid ${accentColor}`,
-      }}
-    >
-      <Box sx={{ px: 2, py: 1.5, display: 'flex', gap: 1 }}>
-        <Typography
-          sx={{
-            fontSize: 12,
-            fontWeight: 700,
-            color: theme.textSecondary,
-          }}
-        >
-          {col.title}
-        </Typography>
-
-        <Typography fontSize={11} color={theme.textSecondary}>
-          {columnTaskCount}
-        </Typography>
-      </Box>
-
-      <Box sx={{ flex: 1, p: 1.5 }}>{children}</Box>
-
-      <Box sx={{ p: 1.5 }}>
-        <Button onClick={onAddTask} fullWidth>
-          + Add Task
-        </Button>
-      </Box>
-    </Box>
-  );
-}
-
-type DraggableTaskProps = {
-  task: Task;
-  theme: typeof COLORS.light;
-  activeId: string | null;
-  onDelete: (id: string) => void;
-  onClick: (task: Task) => void;
-};
-
-function DraggableTask({
-  task,
-  theme,
-  activeId,
-  onDelete,
-  onClick,
-}: DraggableTaskProps) {
-  const { setNodeRef, listeners, attributes } = useDraggable({
-    id: task._id,
-  });
-
-  const accentColor = STATUS_COLORS[task.status];
-  const isDragging = activeId === task._id;
-
-  return (
-    <Paper
-      ref={setNodeRef}
-      {...listeners}
-      {...attributes}
-      sx={{
-        p: 1.5,
-        borderRadius: '6px',
-        border: `1px solid ${theme.border}`,
-        borderLeft: `3px solid ${accentColor}`,
-        mb: 1.5,
-        cursor: 'grab',
-        visibility: isDragging ? 'hidden' : 'visible',
-      }}
-    >
-      <Typography
-        onClick={() => onClick(task)}
-        sx={{ fontSize: 13, fontWeight: 500 }}
-      >
-        {task.title}
-      </Typography>
-
-      <IconButton
-        size="small"
-        onClick={() => onDelete(task._id)}
-        sx={{ float: 'right' }}
-      >
-        <CloseIcon fontSize="small" />
-      </IconButton>
-    </Paper>
   );
 }

@@ -5,10 +5,6 @@ import {
   Typography,
   Button,
   Box,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
   Divider,
 } from '@mui/material';
@@ -17,6 +13,7 @@ import AddIcon from '@mui/icons-material/Add';
 
 import { createProject, getProjects } from '../../../services/project.service';
 import PageContainer from '../../../components/common/page-container';
+import AppDialog from '../../../components/common/app-dialog';
 import { routeHelpers } from '../../../constants/routes';
 
 type Project = {
@@ -177,30 +174,33 @@ export default function ProjectsPage() {
         )}
       </Paper>
 
-      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
-        <DialogTitle>Create Project</DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Project Name"
-            fullWidth
-            value={projectName}
-            onChange={(e) => setProjectName(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-            sx={{ mt: 1 }}
-            autoFocus
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={handleCreate}
-            disabled={!projectName.trim()}
-          >
-            Create
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <AppDialog
+        open={open}
+        onClose={handleClose}
+        title="Create Project"
+        actions={
+          <>
+            <Button onClick={handleClose}>Cancel</Button>
+            <Button
+              variant="contained"
+              onClick={handleCreate}
+              disabled={!projectName.trim()}
+            >
+              Submit
+            </Button>
+          </>
+        }
+      >
+        <TextField
+          label="Project Name"
+          fullWidth
+          value={projectName}
+          onChange={(e) => setProjectName(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+          sx={{ mt: 1 }}
+          autoFocus
+        />
+      </AppDialog>
     </PageContainer>
   );
 }

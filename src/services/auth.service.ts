@@ -1,19 +1,34 @@
-const TOKEN_KEY = 'token';
+import { STORAGE_KEYS } from '../constants/storage';
+
+export type AuthUser = {
+  _id: string;
+  email: string;
+  role: 'admin' | 'user';
+  createdAt?: string;
+  updatedAt?: string;
+};
 
 export const authService = {
   getToken: () => {
-    return localStorage.getItem(TOKEN_KEY);
+    return localStorage.getItem(STORAGE_KEYS.TOKEN);
   },
 
-  setToken: (token: string) => {
-    localStorage.setItem(TOKEN_KEY, token);
+  getUser: (): AuthUser | null => {
+    const user = localStorage.getItem(STORAGE_KEYS.USER);
+    return user ? JSON.parse(user) : null;
   },
 
-  removeToken: () => {
-    localStorage.removeItem(TOKEN_KEY);
+  setAuth: (token: string, user: AuthUser) => {
+    localStorage.setItem(STORAGE_KEYS.TOKEN, token);
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+  },
+
+  removeAuth: () => {
+    localStorage.removeItem(STORAGE_KEYS.TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.USER);
   },
 
   isAuthenticated: () => {
-    return !!localStorage.getItem(TOKEN_KEY);
+    return !!localStorage.getItem(STORAGE_KEYS.TOKEN);
   },
 };

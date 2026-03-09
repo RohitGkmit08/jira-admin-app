@@ -14,10 +14,10 @@ const RequireRole = ({ allowedRoles }: RequireRoleProps) => {
     return <Navigate to={ROUTES.AUTH.LOGIN} replace />;
   }
 
-  const userRole = 'admin';
+  const user = authService.getUser();
 
-  if (!allowedRoles.includes(userRole)) {
-    return <Navigate to={ROUTES.APP.PROJECTS} replace />;
+  if (!user || !allowedRoles.includes(user.role)) {
+    return <Navigate to={ROUTES.ERROR.UNAUTHORIZED} replace />;
   }
 
   return <Outlet />;

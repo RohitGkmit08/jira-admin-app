@@ -1,12 +1,12 @@
 import { Navigate, Outlet } from 'react-router-dom';
 
-import { authService } from '../services/auth.service';
 import { ROUTES } from '../constants/routes';
+import { authService } from '../services/auth.service';
 
 export default function RequireAuth() {
-  const isAuth = authService.isAuthenticated();
+  const token = authService.getToken();
 
-  if (!isAuth) {
+  if (!token) {
     return <Navigate to={ROUTES.AUTH.LOGIN} replace />;
   }
 
