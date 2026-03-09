@@ -1,5 +1,5 @@
 import {
-  Dialog,
+  Dialog as MuiDialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -13,15 +13,9 @@ type Props = {
   children: React.ReactNode;
 };
 
-export default function AppDialog({
-  open,
-  onClose,
-  title,
-  actions,
-  children,
-}: Props) {
+const Dialog = ({ open, onClose, title, actions, children }: Props) => {
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+    <MuiDialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>{title}</DialogTitle>
 
       <DialogContent sx={{ maxHeight: '70vh', overflowY: 'auto' }}>
@@ -29,6 +23,8 @@ export default function AppDialog({
       </DialogContent>
 
       <DialogActions>{actions}</DialogActions>
-    </Dialog>
+    </MuiDialog>
   );
-}
+};
+
+export default Dialog;

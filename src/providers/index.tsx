@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
 import { ThemeProvider, CssBaseline } from '@mui/material';
-import { SnackbarProvider } from 'notistack';
+import { Toaster } from 'react-hot-toast';
 import type { PaletteMode } from '@mui/material';
 
 import { getTheme } from '../theme/theme';
@@ -12,7 +12,11 @@ type ColorModeContextType = {
 
 export const ColorModeContext = createContext<ColorModeContextType>({
   mode: 'light',
-  toggleMode: () => {},
+  toggleMode: () => {
+    if (typeof console !== 'undefined') {
+      console.warn('ColorModeProvider not wrapped');
+    }
+  },
 });
 
 export const useColorMode = () => useContext(ColorModeContext);
@@ -34,12 +38,17 @@ export function ColorModeProvider({ children }: Props) {
     <ColorModeContext.Provider value={{ mode, toggleMode }}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <SnackbarProvider
-          maxSnack={3}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
-          {children}
-        </SnackbarProvider>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              borderRadius: '8px',
+              fontSize: '14px',
+            },
+          }}
+        />
+        {children}
       </ThemeProvider>
     </ColorModeContext.Provider>
   );

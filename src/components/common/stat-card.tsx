@@ -2,10 +2,10 @@ import { Paper, Typography } from '@mui/material';
 
 type Props = {
   label: string;
-  value: number | string;
+  value: string | number;
 };
 
-export default function StatCard({ label, value }: Props) {
+const StatCard = ({ label, value }: Props) => {
   return (
     <Paper variant="outlined" sx={{ p: 2, minWidth: 160 }}>
       <Typography variant="body2" color="text.secondary">
@@ -15,4 +15,6 @@ export default function StatCard({ label, value }: Props) {
       <Typography variant="h4">{value}</Typography>
     </Paper>
   );
-}
+};
+
+export default StatCard;

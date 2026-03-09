@@ -1,23 +1,16 @@
-import { useEffect } from 'react';
-import { Stack, Alert } from '@mui/material';
+import { Stack } from '@mui/material';
+import toast from 'react-hot-toast';
 import type { FormEvent } from 'react';
-import { useSnackbar } from 'notistack';
 
 import Input from '../../../components/common/input';
 import PasswordInput from '../../../components/common/input/password-input';
-import LoadingButton from '../../../components/common/loading-button';
+import Button from '../../../components/common/button';
 import { useLogin } from '../hooks/use-login';
 
 const LoginForm = () => {
-  const { enqueueSnackbar } = useSnackbar();
-  const { form, errors, apiError, handleChange, handleSubmit, loading } =
-    useLogin();
-
-  useEffect(() => {
-    if (apiError) {
-      enqueueSnackbar(apiError, { variant: 'error' });
-    }
-  }, [apiError, enqueueSnackbar]);
+  const { form, errors, loading, handleChange, handleSubmit } = useLogin(
+    (message) => toast.error(message),
+  );
 
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -27,8 +20,6 @@ const LoginForm = () => {
   return (
     <form onSubmit={onSubmit}>
       <Stack spacing={2}>
-        {apiError && <Alert severity="error">{apiError}</Alert>}
-
         <Input
           label="Email"
           name="email"
@@ -49,14 +40,9 @@ const LoginForm = () => {
           autoComplete="current-password"
         />
 
-        <LoadingButton
-          type="submit"
-          variant="contained"
-          loading={loading}
-          fullWidth
-        >
-          {loading ? 'Signing in...' : 'Sign in'}
-        </LoadingButton>
+        <Button type="submit" variant="contained" loading={loading} fullWidth>
+          Sign in
+        </Button>
       </Stack>
     </form>
   );

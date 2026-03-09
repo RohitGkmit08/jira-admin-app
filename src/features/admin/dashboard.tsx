@@ -1,16 +1,11 @@
 import { useEffect, useState } from 'react';
-import {
-  Box,
-  Typography,
-  Paper,
-  Stack,
-  Button,
-  CircularProgress,
-} from '@mui/material';
-import { useSnackbar } from 'notistack';
+import { Box, Typography, Paper, CircularProgress } from '@mui/material';
+import toast from 'react-hot-toast';
 
 import { apiFetch } from '../../api';
+import ListRow from '../../components/common/list-row';
 import ConfirmDialog from '../../components/common/confirm-dialog';
+import Button from '../../components/common/button';
 
 type AdminUser = {
   _id: string;
@@ -19,7 +14,6 @@ type AdminUser = {
 };
 
 export default function AdminDashboard() {
-  const { enqueueSnackbar } = useSnackbar();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [open, setOpen] = useState(false);
@@ -35,14 +29,14 @@ export default function AdminDashboard() {
       } catch (error) {
         const message =
           error instanceof Error ? error.message : 'Failed to load users';
-        enqueueSnackbar(message, { variant: 'error' });
+        toast.error(message);
       } finally {
         setUsersLoading(false);
       }
     };
 
     loadUsers();
-  }, [enqueueSnackbar]);
+  }, []);
 
   const handleDeleteClick = (user: AdminUser) => {
     setSelectedUser(user);
@@ -61,11 +55,11 @@ export default function AdminDashboard() {
       setUsers((prev) => prev.filter((u) => u._id !== selectedUser._id));
       setOpen(false);
       setSelectedUser(null);
-      enqueueSnackbar('User deleted', { variant: 'success' });
+      toast.success('User deleted');
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Failed to delete user';
-      enqueueSnackbar(message, { variant: 'error' });
+      toast.error(message);
     } finally {
       setDeleteLoading(false);
     }
@@ -92,39 +86,33 @@ export default function AdminDashboard() {
             <CircularProgress />
           </Box>
         ) : (
-          <Stack spacing={1}>
-            {users.map((user) => (
-              <Box
+          <Box>
+            {users.map((user, index) => (
+              <ListRow
                 key={user._id}
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  borderBottom: '1px solid #eee',
-                  pb: 1,
-                }}
-              >
-                <Typography>
-                  {user.email} — {user.role}
-                </Typography>
-
-                <Button
-                  color="error"
-                  variant="outlined"
-                  size="small"
-                  onClick={() => handleDeleteClick(user)}
-                >
-                  Delete
-                </Button>
-              </Box>
+                title={user.email}
+                subtitle={user.role}
+                showDivider={index < users.length - 1}
+                actions={
+                  <Button
+                    color="error"
+                    variant="outlined"
+                    size="small"
+                    onClick={() => handleDeleteClick(user)}
+                  >
+                    Delete
+                  </Button>
+                }
+              />
             ))}
-          </Stack>
+          </Box>
         )}
       </Paper>
 
       <ConfirmDialog
         open={open}
         onClose={handleClose}
+        onConfirm={handleConfirmDelete}
         title="Delete User"
         message={
           <>
@@ -132,8 +120,7 @@ export default function AdminDashboard() {
             <strong>{selectedUser?.email}</strong>?
           </>
         }
-        confirmLabel="Delete"
-        onConfirm={handleConfirmDelete}
+        confirmText="Delete"
         loading={deleteLoading}
         confirmColor="error"
       />

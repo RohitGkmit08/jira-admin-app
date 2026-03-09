@@ -12,13 +12,13 @@ import {
   IconButton,
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSnackbar } from 'notistack';
+import toast from 'react-hot-toast';
 import type { DragEndEvent } from '@dnd-kit/core';
 import SettingsIcon from '@mui/icons-material/Settings';
 
 import PageContainer from '../../../components/common/page-container';
 import PageHeader from '../../../components/common/page-header';
-import AppDialog from '../../../components/common/app-dialog';
+import Dialog from '../../../components/common/dialog';
 import DndContextWrapper from '../../../components/common/dnd-context';
 import FormActions from '../../../components/common/form-actions';
 import DraggableTask from '../components/draggable-task';
@@ -31,21 +31,35 @@ import {
   updateTask,
   deleteTask,
 } from '../../../services/task.service';
-import { getMembers } from '../../../services/member.service';
 import { routeHelpers } from '../../../constants/routes';
-import type {
-  ITask,
-  TaskPriority,
-  TaskType,
-  IProjectMember,
-} from '../../../types';
+
+// Assuming local type definitions or imported from elsewhere. If not available we should just use any or reconstruct them.
+// Let's reconstruct the minimal types for compiling
+type TaskPriority = 'critical' | 'high' | 'medium' | 'low';
+type TaskType = 'task' | 'bug' | 'story' | 'subtask';
+
+type ITask = {
+  _id: string;
+  title: string;
+  description?: string;
+  status: Status;
+  priority?: TaskPriority;
+  type?: TaskType;
+  assignee?: { _id: string } | string | null;
+  dueDate?: string | null;
+  taskKey?: string;
+};
+
+type IProjectMember = {
+  userId: string;
+  name: string;
+};
 
 const PRIORITY_OPTIONS: TaskPriority[] = ['critical', 'high', 'medium', 'low'];
 const TYPE_OPTIONS: TaskType[] = ['task', 'bug', 'story', 'subtask'];
 
 export default function ProjectDetailsPage() {
   const { projectId } = useParams<{ projectId: string }>();
-  const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
 
   const muiTheme = useTheme();
@@ -94,14 +108,14 @@ export default function ProjectDetailsPage() {
       } catch (err) {
         const message =
           err instanceof Error ? err.message : 'Failed to load board';
-        enqueueSnackbar(message, { variant: 'error' });
+        toast.error(message);
       } finally {
         setTasksLoading(false);
       }
     };
 
     fetchData();
-  }, [projectId, enqueueSnackbar]);
+  }, [projectId]);
 
   const resetCreateForm = () => {
     setTaskTitle('');
@@ -131,11 +145,10 @@ export default function ProjectDetailsPage() {
       setTasks((prev) => [...prev, newTask]);
       resetCreateForm();
       setOpen(false);
-      enqueueSnackbar('Task added', { variant: 'success' });
+      toast.success('Task added');
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Failed to add task';
-      enqueueSnackbar(message, { variant: 'error' });
+      const message = err instanceof Error ? err.message : 'Failed to add task';
+      toast.error(message);
     } finally {
       setCreateTaskLoading(false);
     }
@@ -145,11 +158,11 @@ export default function ProjectDetailsPage() {
     try {
       await deleteTask(taskId);
       setTasks((prev) => prev.filter((task) => task._id !== taskId));
-      enqueueSnackbar('Task deleted', { variant: 'success' });
+      toast.success('Task deleted');
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Failed to delete task';
-      enqueueSnackbar(message, { variant: 'error' });
+      toast.error(message);
     }
   };
 
@@ -162,10 +175,10 @@ export default function ProjectDetailsPage() {
     setEditedAssignee(
       typeof task.assignee === 'object' && task.assignee
         ? task.assignee._id
-        : ''
+        : '',
     );
     setEditedDueDate(
-      task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : ''
+      task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
     );
   };
 
@@ -190,11 +203,11 @@ export default function ProjectDetailsPage() {
       );
 
       setSelectedTask(null);
-      enqueueSnackbar('Task updated', { variant: 'success' });
+      toast.success('Task updated');
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Failed to update task';
-      enqueueSnackbar(message, { variant: 'error' });
+      toast.error(message);
     } finally {
       setSaveTaskLoading(false);
     }
@@ -215,11 +228,11 @@ export default function ProjectDetailsPage() {
       setTasks((prev) =>
         prev.map((task) => (task._id === taskId ? updatedTask : task)),
       );
-      enqueueSnackbar('Status updated', { variant: 'success' });
+      toast.success('Status updated');
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Failed to update status';
-      enqueueSnackbar(message, { variant: 'error' });
+      toast.error(message);
     }
   };
 
@@ -408,7 +421,7 @@ export default function ProjectDetailsPage() {
       </DndContextWrapper>
 
       {/* Create Task Dialog */}
-      <AppDialog
+      <Dialog
         open={open}
         onClose={() => {
           setOpen(false);
@@ -429,17 +442,23 @@ export default function ProjectDetailsPage() {
         }
       >
         {renderTaskFields(
-          taskTitle, setTaskTitle,
-          taskDescription, setTaskDescription,
-          taskPriority, setTaskPriority,
-          taskType, setTaskType,
-          taskAssignee, setTaskAssignee,
-          taskDueDate, setTaskDueDate,
+          taskTitle,
+          setTaskTitle,
+          taskDescription,
+          setTaskDescription,
+          taskPriority,
+          setTaskPriority,
+          taskType,
+          setTaskType,
+          taskAssignee,
+          setTaskAssignee,
+          taskDueDate,
+          setTaskDueDate,
         )}
-      </AppDialog>
+      </Dialog>
 
       {/* Edit Task Dialog */}
-      <AppDialog
+      <Dialog
         open={Boolean(selectedTask)}
         onClose={() => setSelectedTask(null)}
         title={selectedTask?.taskKey ?? 'Task Details'}
@@ -454,14 +473,20 @@ export default function ProjectDetailsPage() {
         }
       >
         {renderTaskFields(
-          editedTitle, setEditedTitle,
-          editedDescription, setEditedDescription,
-          editedPriority, setEditedPriority,
-          editedType, setEditedType,
-          editedAssignee, setEditedAssignee,
-          editedDueDate, setEditedDueDate,
+          editedTitle,
+          setEditedTitle,
+          editedDescription,
+          setEditedDescription,
+          editedPriority,
+          setEditedPriority,
+          editedType,
+          setEditedType,
+          editedAssignee,
+          setEditedAssignee,
+          editedDueDate,
+          setEditedDueDate,
         )}
-      </AppDialog>
+      </Dialog>
     </PageContainer>
   );
 }

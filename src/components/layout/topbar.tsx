@@ -11,7 +11,7 @@ import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useNavigate } from 'react-router-dom';
-import { useSnackbar } from 'notistack';
+import toast from 'react-hot-toast';
 
 import { ROUTES } from '../../constants/routes';
 import { useColorMode } from '../../providers';
@@ -23,14 +23,13 @@ type Props = {
 
 export default function Topbar({ onMenuClick }: Props) {
   const navigate = useNavigate();
-  const { enqueueSnackbar } = useSnackbar();
   const { mode, toggleMode } = useColorMode();
 
   const user = authService.getUser();
 
   const handleLogout = () => {
     authService.removeAuth();
-    enqueueSnackbar('Logged out successfully', { variant: 'success' });
+    toast.success('Logged out successfully');
     navigate(ROUTES.AUTH.LOGIN, { replace: true });
   };
 
