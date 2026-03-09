@@ -30,7 +30,7 @@ export default function AppLayout() {
         <Box
           sx={{
             width: '100%',
-            maxWidth: '1000px',
+            maxWidth: '1400px',
             p: 3,
           }}
         >

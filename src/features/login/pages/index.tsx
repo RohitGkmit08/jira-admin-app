@@ -1,6 +1,7 @@
-import { Box, Paper, Typography } from '@mui/material';
+import { Box, Paper, Typography, Divider } from '@mui/material';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 
-import LoginForm from '../components/login-form';
+import LoginForm from '../components/login-form.tsx';
 
 export default function LoginPage() {
   return (
@@ -10,20 +11,51 @@ export default function LoginPage() {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        bgcolor: 'background.default',
+        backgroundColor: 'background.default',
       }}
     >
       <Paper
-        elevation={3}
+        variant="outlined"
         sx={{
-          padding: 4,
-          width: 400,
-          borderRadius: 2,
+          p: 4,
+          width: 380,
+          borderRadius: '8px',
         }}
       >
-        <Typography variant="h5" mb={2}>
-          Login
-        </Typography>
+        {/* ICON + TITLE */}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            mb: 3,
+          }}
+        >
+          <Box
+            sx={{
+              width: 44,
+              height: 44,
+              borderRadius: '8px',
+              backgroundColor: 'primary.main',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mb: 2,
+            }}
+          >
+            <LockOutlinedIcon sx={{ color: 'common.white', fontSize: 22 }} />
+          </Box>
+
+          <Typography variant="h6" fontWeight={700}>
+            Welcome back
+          </Typography>
+
+          <Typography variant="body2" color="text.secondary" mt={0.5}>
+            Sign in to your account
+          </Typography>
+        </Box>
+
+        <Divider sx={{ mb: 3 }} />
 
         <LoginForm />
       </Paper>

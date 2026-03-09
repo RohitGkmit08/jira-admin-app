@@ -4,7 +4,7 @@ import type { FormEvent } from 'react';
 import Input from '../../../components/common/input';
 import { useLogin } from '../hooks/use-login';
 
-export default function LoginForm() {
+const LoginForm = () => {
   const { form, errors, handleChange, handleSubmit, loading } = useLogin();
 
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -22,6 +22,7 @@ export default function LoginForm() {
           onChange={handleChange}
           error={Boolean(errors.email)}
           helperText={errors.email}
+          autoComplete="email"
         />
 
         <Input
@@ -32,12 +33,15 @@ export default function LoginForm() {
           onChange={handleChange}
           error={Boolean(errors.password)}
           helperText={errors.password}
+          autoComplete="password"
         />
 
-        <Button type="submit" variant="contained" disabled={loading}>
-          {loading ? 'Logging in...' : 'Login'}
+        <Button type="submit" variant="contained" disabled={loading} fullWidth>
+          {loading ? 'Signing in...' : 'Sign in'}
         </Button>
       </Stack>
     </form>
   );
-}
+};
+
+export default LoginForm;

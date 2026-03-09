@@ -1,24 +1,24 @@
-import { Navigate } from 'react-router-dom';
-import { ROUTES } from '../constants/routes';
+import { Navigate, Outlet } from 'react-router-dom';
 
-import type { UserRole } from '../features/login/types';
-import { useAuthSession } from '../features/login/hooks/use-auth-session';
 import { ROUTES } from '../constants/routes';
-interface Props {
-  children: React.ReactNode;
-  allowedRoles: UserRole[];
+import { authService } from '../services/auth.service';
+
+type RequireRoleProps = {
+  allowedRoles: string[];
 };
 
-export default function RequireRole({ children, allowedRoles }: Props) {
-  const user = JSON.parse(localStorage.getItem('user') || 'null');
+export const RequireRole = ({ allowedRoles }: RequireRoleProps) => {
+  const token = authService.getToken();
 
-  if (!user) {
+  if (!token) {
     return <Navigate to={ROUTES.AUTH.LOGIN} replace />;
   }
+
+  const user = authService.getUser();
 
   if (!user || !allowedRoles.includes(user.role)) {
     return <Navigate to={ROUTES.ERROR.UNAUTHORIZED} replace />;
   }
 
-  return <>{children}</>;
-}
+  return <Outlet />;
+};
