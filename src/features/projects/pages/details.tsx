@@ -7,7 +7,7 @@ import {
   TextField,
   useTheme,
   IconButton,
-  Dialog,
+  Dialog as MuiDialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -17,7 +17,7 @@ import { useDraggable, useDroppable, type DragEndEvent } from '@dnd-kit/core';
 import CloseIcon from '@mui/icons-material/Close';
 
 import PageContainer from '../../../components/common/page-container';
-import AppDialog from '../../../components/common/app-dialog';
+import Dialog from '../../../components/common/dialog';
 import DndContextWrapper from '../../../components/common/dnd-context';
 import { COLORS } from '../../../constants/theme';
 import { COLUMNS, STATUS_COLORS, type Task, type Status } from '../constants';
@@ -199,7 +199,7 @@ export default function ProjectDetailsPage() {
         </Box>
       </DndContextWrapper>
 
-      <AppDialog
+      <Dialog
         open={open}
         onClose={() => setOpen(false)}
         title={`Add task to ${selectedStatus}`}
@@ -235,8 +235,8 @@ export default function ProjectDetailsPage() {
           margin="normal"
           InputLabelProps={{ shrink: true }}
         />
-      </AppDialog>
-      <Dialog
+      </Dialog>
+      <MuiDialog
         open={Boolean(selectedTask)}
         onClose={() => setSelectedTask(null)}
         fullWidth
@@ -277,7 +277,7 @@ export default function ProjectDetailsPage() {
             Save
           </Button>
         </DialogActions>
-      </Dialog>
+      </MuiDialog>
     </PageContainer>
   );
 }

@@ -1,17 +1,10 @@
 import { useEffect, useState } from 'react';
-import {
-  Box,
-  Typography,
-  Paper,
-  Stack,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-} from '@mui/material';
+import { Box, Typography, Paper } from '@mui/material';
 
 import { apiFetch } from '../../api';
+import ListRow from '../../components/common/list-row';
+import ConfirmDialog from '../../components/common/confirm-dialog';
+import Button from '../../components/common/button';
 
 type AdminUser = {
   _id: string;
@@ -83,57 +76,42 @@ export default function AdminDashboard() {
           Users ({users.length})
         </Typography>
 
-        <Stack spacing={1}>
-          {users.map((user) => (
-            <Box
+        <Box>
+          {users.map((user, index) => (
+            <ListRow
               key={user._id}
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                borderBottom: '1px solid #eee',
-                pb: 1,
-              }}
-            >
-              <Typography>
-                {user.email} — {user.role}
-              </Typography>
-
-              <Button
-                color="error"
-                variant="outlined"
-                size="small"
-                onClick={() => handleDeleteClick(user)}
-              >
-                Delete
-              </Button>
-            </Box>
+              title={user.email}
+              subtitle={user.role}
+              showDivider={index < users.length - 1}
+              actions={
+                <Button
+                  color="error"
+                  variant="outlined"
+                  size="small"
+                  onClick={() => handleDeleteClick(user)}
+                >
+                  Delete
+                </Button>
+              }
+            />
           ))}
-        </Stack>
+        </Box>
       </Paper>
 
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Delete User</DialogTitle>
-
-        <DialogContent>
-          <Typography>
+      <ConfirmDialog
+        open={open}
+        onClose={handleClose}
+        onConfirm={handleConfirmDelete}
+        title="Delete User"
+        message={
+          <>
             Are you sure you want to delete{' '}
             <strong>{selectedUser?.email}</strong>?
-          </Typography>
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-
-          <Button
-            color="error"
-            variant="contained"
-            onClick={handleConfirmDelete}
-          >
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </>
+        }
+        confirmText="Delete"
+        confirmColor="error"
+      />
     </Box>
   );
 }

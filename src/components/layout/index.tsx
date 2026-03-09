@@ -5,7 +5,7 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from './sidebar';
 import Topbar from './topbar';
 
-export default function AppLayout() {
+export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleToggle = () => {

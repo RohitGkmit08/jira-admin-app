@@ -24,6 +24,7 @@ export const COLORS = {
 
   dark: {
     background: '#1f1f1f',
+    paper: '#1f1f1f',
     border: '#3a3a3a',
     textPrimary: '#ffffff',
     textSecondary: '#b0b0b0',

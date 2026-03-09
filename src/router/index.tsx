@@ -4,7 +4,7 @@ import LoginPage from '../features/login/pages';
 import { ProjectsPage } from '../features/projects';
 import { ProjectDetailsPage } from '../features/projects';
 import AdminDashboard from '../features/admin/dashboard';
-import AppLayout from '../components/layout';
+import Layout from '../components/layout';
 import { ROUTES } from '../constants/routes';
 
 import RequireAuth from './private-route';
@@ -25,7 +25,7 @@ export const router = createBrowserRouter([
     element: <RequireAuth />,
     children: [
       {
-        element: <AppLayout />,
+        element: <Layout />,
         children: [
           {
             path: ROUTES.APP.PROJECTS,

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import {
   Paper,
   Typography,
-  Button,
   Box,
   Dialog,
   DialogTitle,
@@ -12,7 +12,6 @@ import {
   TextField,
   Divider,
   IconButton,
-  CircularProgress,
 } from '@mui/material';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import AddIcon from '@mui/icons-material/Add';
@@ -26,6 +25,12 @@ import {
   updateProject,
 } from '../../../services/project.service';
 import PageContainer from '../../../components/common/page-container';
+import Button from '../../../components/common/button';
+import Loader from '../../../components/common/loader';
+import StatCard from '../../../components/common/stat-card';
+import EmptyState from '../../../components/common/empty-state';
+import ListRow from '../../../components/common/list-row';
+import ConfirmDialog from '../../../components/common/confirm-dialog';
 import { routeHelpers } from '../../../constants/routes';
 
 type Project = {
@@ -36,16 +41,11 @@ type Project = {
 export default function ProjectsPage() {
   const [open, setOpen] = useState(false);
   const [projectName, setProjectName] = useState('');
-
   const [projects, setProjects] = useState<Project[]>([]);
-
   const [deleteId, setDeleteId] = useState<string | null>(null);
-
   const [editId, setEditId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
-
   const [loading, setLoading] = useState(true);
-
   const [createLoading, setCreateLoading] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -59,7 +59,9 @@ export default function ProjectsPage() {
         const data = await getProjects();
         setProjects(data);
       } catch (err) {
-        console.error('Failed to fetch projects', err);
+        toast.error(
+          err instanceof Error ? err.message : 'Failed to load projects',
+        );
       } finally {
         setLoading(false);
       }
@@ -73,16 +75,15 @@ export default function ProjectsPage() {
 
     try {
       setCreateLoading(true);
-
-      const newProject = await createProject({
-        name: projectName.trim(),
-      });
-
+      const newProject = await createProject({ name: projectName.trim() });
       setProjects((prev) => [newProject, ...prev]);
       setOpen(false);
       setProjectName('');
+      toast.success('Project created');
     } catch (err) {
-      console.error('Failed to create project', err);
+      toast.error(
+        err instanceof Error ? err.message : 'Failed to create project',
+      );
     } finally {
       setCreateLoading(false);
     }
@@ -93,14 +94,14 @@ export default function ProjectsPage() {
 
     try {
       setDeleteLoading(true);
-
       await deleteProject(deleteId);
-
-      setProjects((prev) => prev.filter((project) => project._id !== deleteId));
-
+      setProjects((prev) => prev.filter((p) => p._id !== deleteId));
       setDeleteId(null);
+      toast.success('Project deleted');
     } catch (err) {
-      console.error('Delete failed', err);
+      toast.error(
+        err instanceof Error ? err.message : 'Failed to delete project',
+      );
     } finally {
       setDeleteLoading(false);
     }
@@ -111,28 +112,19 @@ export default function ProjectsPage() {
 
     try {
       setUpdateLoading(true);
-
-      const updated = await updateProject(editId, {
-        name: editName.trim(),
-      });
-
-      setProjects((prev) =>
-        prev.map((project) => (project._id === editId ? updated : project)),
-      );
-
+      const updated = await updateProject(editId, { name: editName.trim() });
+      setProjects((prev) => prev.map((p) => (p._id === editId ? updated : p)));
       setEditId(null);
       setEditName('');
+      toast.success('Project updated');
     } catch (err) {
-      console.error('Update failed', err);
+      toast.error(
+        err instanceof Error ? err.message : 'Failed to update project',
+      );
     } finally {
       setUpdateLoading(false);
     }
   };
-
-  const stats = [
-    { label: 'Total Projects', length: projects.length },
-    { label: 'Active Projects', length: projects.length },
-  ];
 
   return (
     <PageContainer title="Projects">
@@ -146,7 +138,6 @@ export default function ProjectsPage() {
           <Typography variant="h6" fontWeight={700}>
             All Projects
           </Typography>
-
           <Typography variant="body2" color="text.secondary">
             Create and manage your projects
           </Typography>
@@ -165,14 +156,11 @@ export default function ProjectsPage() {
       <Divider sx={{ mb: 3 }} />
 
       <Box display="flex" gap={2} flexWrap="wrap" mb={3}>
-        {stats.map(({ label, length }) => (
-          <Paper key={label} variant="outlined" sx={{ p: 2, minWidth: 160 }}>
-            <Typography variant="body2" color="text.secondary">
-              {label}
-            </Typography>
-
-            <Typography variant="h4">{length}</Typography>
-          </Paper>
+        {[
+          { label: 'Total Projects', value: projects.length },
+          { label: 'Active Projects', value: projects.length },
+        ].map(({ label, value }) => (
+          <StatCard key={label} label={label} value={value} />
         ))}
       </Box>
 
@@ -181,89 +169,56 @@ export default function ProjectsPage() {
         sx={{ borderRadius: '8px', overflow: 'hidden' }}
       >
         {loading ? (
-          <Box sx={{ py: 6, display: 'flex', justifyContent: 'center' }}>
-            <CircularProgress />
-          </Box>
+          <Loader sx={{ py: 6 }} />
         ) : projects.length === 0 ? (
-          <Box
-            sx={{
-              py: 6,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 1,
-            }}
-          >
-            <FolderOpenIcon sx={{ fontSize: 40, opacity: 0.4 }} />
-            <Typography color="text.secondary">No projects yet</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Click "Create Project" to get started
-            </Typography>
-          </Box>
+          <EmptyState
+            icon={<FolderOpenIcon sx={{ fontSize: 40 }} />}
+            title="No projects yet"
+            description='Click "Create Project" to get started'
+          />
         ) : (
           <Box>
             {projects.map((project, index) => (
-              <Box key={project._id}>
-                <Box
-                  sx={{
-                    px: 2,
-                    py: 1.5,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1.5,
-                    cursor: 'pointer',
-                    '&:hover': { backgroundColor: 'action.hover' },
-                  }}
-                >
-                  <FolderOpenIcon
-                    fontSize="small"
-                    sx={{ color: 'primary.main' }}
-                  />
+              <ListRow
+                key={project._id}
+                title={project.name}
+                subtitle={`#${index + 1}`}
+                icon={<FolderOpenIcon fontSize="small" />}
+                onClick={() =>
+                  navigate(routeHelpers.projectDetails(project._id))
+                }
+                showDivider={index < projects.length - 1}
+                actions={
+                  <>
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditId(project._id);
+                        setEditName(project.name);
+                      }}
+                    >
+                      <EditIcon fontSize="small" />
+                    </IconButton>
 
-                  <Typography
-                    fontWeight={500}
-                    fontSize={14}
-                    onClick={() =>
-                      navigate(routeHelpers.projectDetails(project._id))
-                    }
-                  >
-                    {project.name}
-                  </Typography>
-
-                  <Typography
-                    fontSize={12}
-                    color="text.secondary"
-                    sx={{ ml: 'auto' }}
-                  >
-                    #{index + 1}
-                  </Typography>
-
-                  <IconButton
-                    size="small"
-                    onClick={() => {
-                      setEditId(project._id);
-                      setEditName(project.name);
-                    }}
-                  >
-                    <EditIcon fontSize="small" />
-                  </IconButton>
-
-                  <IconButton
-                    size="small"
-                    onClick={() => setDeleteId(project._id)}
-                  >
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
-                </Box>
-
-                {index < projects.length - 1 && <Divider />}
-              </Box>
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteId(project._id);
+                      }}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </>
+                }
+              />
             ))}
           </Box>
         )}
       </Paper>
 
-      {/* Create Project */}
+      {/* Create */}
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
@@ -271,7 +226,6 @@ export default function ProjectsPage() {
         maxWidth="sm"
       >
         <DialogTitle>Create Project</DialogTitle>
-
         <DialogContent>
           <TextField
             label="Project Name"
@@ -282,21 +236,20 @@ export default function ProjectsPage() {
             autoFocus
           />
         </DialogContent>
-
         <DialogActions>
           <Button onClick={() => setOpen(false)}>Cancel</Button>
-
           <Button
             variant="contained"
             onClick={handleCreate}
-            disabled={!projectName.trim() || createLoading}
+            disabled={!projectName.trim()}
+            loading={createLoading}
           >
-            {createLoading ? <CircularProgress size={20} /> : 'Create'}
+            Create
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Edit Project */}
+      {/* Edit */}
       <Dialog
         open={Boolean(editId)}
         onClose={() => setEditId(null)}
@@ -304,7 +257,6 @@ export default function ProjectsPage() {
         fullWidth
       >
         <DialogTitle>Edit Project</DialogTitle>
-
         <DialogContent>
           <TextField
             label="Project Name"
@@ -314,46 +266,30 @@ export default function ProjectsPage() {
             sx={{ mt: 1 }}
           />
         </DialogContent>
-
         <DialogActions>
           <Button onClick={() => setEditId(null)}>Cancel</Button>
-
           <Button
             variant="contained"
             onClick={handleUpdate}
-            disabled={!editName.trim() || updateLoading}
+            disabled={!editName.trim()}
+            loading={updateLoading}
           >
-            {updateLoading ? <CircularProgress size={20} /> : 'Save'}
+            Save
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Delete Project */}
-      <Dialog
+      {/* Delete */}
+      <ConfirmDialog
         open={Boolean(deleteId)}
         onClose={() => setDeleteId(null)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Delete Project?</DialogTitle>
-
-        <DialogContent>
-          <Typography>Are you sure you want to delete this project?</Typography>
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={() => setDeleteId(null)}>Cancel</Button>
-
-          <Button
-            color="error"
-            variant="contained"
-            onClick={handleDelete}
-            disabled={deleteLoading}
-          >
-            {deleteLoading ? <CircularProgress size={20} /> : 'Delete'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onConfirm={handleDelete}
+        title="Delete Project?"
+        message="Are you sure you want to delete this project?"
+        confirmText="Delete"
+        confirmColor="error"
+        loading={deleteLoading}
+      />
     </PageContainer>
   );
 }
