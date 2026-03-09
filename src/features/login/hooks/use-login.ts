@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import { EMAIL_REGEX } from '../../../constants/regex';
 import { loginUser } from '../../../api/auth.api';
 import { authService } from '../../../services/auth.service';
@@ -13,7 +14,6 @@ export function useLogin() {
     email: '',
     password: '',
   });
-
   const [errors, setErrors] = useState<LoginFormErrors>({});
   const [loading, setLoading] = useState(false);
 
@@ -46,10 +46,8 @@ export function useLogin() {
 
     try {
       setLoading(true);
-
       const res = await loginUser(form);
       authService.setToken(res.token);
-
       navigate(ROUTES.APP.PROJECTS);
     } catch (err: unknown) {
       if (err instanceof Error) {

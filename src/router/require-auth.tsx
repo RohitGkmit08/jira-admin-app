@@ -1,10 +1,13 @@
 import { Navigate, Outlet } from 'react-router-dom';
 
-export default function RequireAuth() {
-  const user = localStorage.getItem('user');
+import { ROUTES } from '../constants/routes';
+import { authService } from '../services/auth.service';
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
+export default function RequireAuth() {
+  const token = authService.getToken();
+
+  if (!token) {
+    return <Navigate to={ROUTES.AUTH.LOGIN} replace />;
   }
 
   return <Outlet />;

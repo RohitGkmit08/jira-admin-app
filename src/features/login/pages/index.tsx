@@ -1,7 +1,7 @@
 import { Box, Paper, Typography, Divider } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 
-import LoginForm from '../components/login-form.tsx';
+import LoginForm from '../components/login-form';
 
 export default function LoginPage() {
   return (
