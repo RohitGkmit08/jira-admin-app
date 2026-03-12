@@ -1,49 +1,10 @@
-import {
-  Box,
-  Typography,
-  Paper,
-  IconButton,
-  Chip,
-  Avatar,
-  Tooltip,
-} from '@mui/material';
+import { Box, Typography, Paper, IconButton, Chip } from '@mui/material';
 import { useDraggable } from '@dnd-kit/core';
 import CloseIcon from '@mui/icons-material/Close';
-import BugReportIcon from '@mui/icons-material/BugReport';
-import BookmarkIcon from '@mui/icons-material/Bookmark';
-import TaskAltIcon from '@mui/icons-material/TaskAlt';
-import AccountTreeIcon from '@mui/icons-material/AccountTree';
 
 import { COLORS } from '../../../theme/colors';
-import { STATUS_COLORS } from '../constants';
-import type { ITask, TaskPriority, TaskType } from '../../../types';
-
-const PRIORITY_COLORS: Record<TaskPriority, string> = {
-  critical: '#d32f2f',
-  high: '#f57c00',
-  medium: '#0288d1',
-  low: '#757575',
-};
-
-const TYPE_ICONS: Record<TaskType, React.ReactNode> = {
-  task: <TaskAltIcon sx={{ fontSize: 13 }} />,
-  bug: <BugReportIcon sx={{ fontSize: 13 }} />,
-  story: <BookmarkIcon sx={{ fontSize: 13 }} />,
-  subtask: <AccountTreeIcon sx={{ fontSize: 13 }} />,
-};
-
-const getInitials = (name: string) =>
-  name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-
-const isOverdue = (dueDate?: string | null) => {
-  if (!dueDate) return false;
-  return new Date(dueDate) < new Date();
-};
+import { STATUS_COLORS, PRIORITY_COLORS } from '../constants';
+import type { ITask } from '../../../types.ts';
 
 type DraggableTaskProps = {
   task: ITask;
@@ -64,9 +25,10 @@ export default function DraggableTask({
     id: task._id,
   });
 
-  const accentColor = STATUS_COLORS[task.status];
+  const accentColor = STATUS_COLORS[task.status as keyof typeof STATUS_COLORS];
   const isDragging = activeId === task._id;
-  const overdue = isOverdue(task.dueDate);
+
+  const priorityColor = PRIORITY_COLORS[task.priority || 'medium'];
 
   return (
     <Paper
@@ -85,19 +47,16 @@ export default function DraggableTask({
         visibility: isDragging ? 'hidden' : 'visible',
       }}
     >
-      {/* Top row — type icon + task key + delete */}
-      <Box display="flex" alignItems="center" justifyContent="space-between" mb={0.5}>
-        <Box display="flex" alignItems="center" gap={0.5}>
-          <Tooltip title={task.type}>
-            <Box sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center' }}>
-              {TYPE_ICONS[task.type]}
-            </Box>
-          </Tooltip>
-
-          <Typography fontSize={11} color="text.secondary" fontFamily="monospace">
-            {task.taskKey}
-          </Typography>
-        </Box>
+      {/* Top row */}
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="space-between"
+        mb={0.5}
+      >
+        <Typography fontSize={11} color="text.secondary" fontFamily="monospace">
+          {task.taskKey}
+        </Typography>
 
         <IconButton
           size="small"
@@ -120,7 +79,7 @@ export default function DraggableTask({
           fontWeight: 600,
           lineHeight: 1.4,
           cursor: 'pointer',
-          mb: 0.5,
+          mb: 0.6,
           '&:hover': { color: 'primary.main' },
         }}
       >
@@ -144,41 +103,22 @@ export default function DraggableTask({
         </Typography>
       )}
 
-      {/* Bottom row — priority + due date + assignee */}
-      <Box display="flex" alignItems="center" gap={1} mt={0.5}>
-        {/* Priority */}
+      {/* Priority */}
+      <Box display="flex" justifyContent="flex-start">
         <Chip
-          label={task.priority}
+          label={task.priority || 'medium'}
           size="small"
           sx={{
             fontSize: 10,
-            height: 18,
-            color: PRIORITY_COLORS[task.priority],
-            borderColor: PRIORITY_COLORS[task.priority],
+            height: 20,
+            borderRadius: '6px',
+            fontWeight: 600,
+            color: priorityColor,
+            borderColor: priorityColor,
             textTransform: 'capitalize',
           }}
           variant="outlined"
         />
-
-        {/* Due date */}
-        {task.dueDate && (
-          <Typography
-            fontSize={10}
-            sx={{ color: overdue ? 'error.main' : 'text.secondary' }}
-          >
-            {overdue ? '⚠ ' : ''}
-            {new Date(task.dueDate).toLocaleDateString()}
-          </Typography>
-        )}
-
-        {/* Assignee avatar */}
-        {task.assignee && (
-          <Tooltip title={task.assignee.name} sx={{ ml: 'auto' }}>
-            <Avatar sx={{ width: 20, height: 20, fontSize: 10, ml: 'auto' }}>
-              {getInitials(task.assignee.name)}
-            </Avatar>
-          </Tooltip>
-        )}
       </Box>
     </Paper>
   );

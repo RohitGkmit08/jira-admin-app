@@ -20,4 +20,5 @@ export const ROUTES = {
 
 export const routeHelpers = {
   projectDetails: (id: string) => `/projects/${id}`,
+  projectSettings: (id: string) => `/projects/${id}/settings`,
 };

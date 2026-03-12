@@ -3,7 +3,7 @@ import { useDroppable } from '@dnd-kit/core';
 
 import { COLORS } from '../../../theme/colors';
 import { STATUS_COLORS, type Status } from '../constants';
-import type { ITask } from '../../../types';
+import type { ITask } from '../../../types.ts';
 
 type DroppableColumnProps = {
   col: { id: Status; title: string };

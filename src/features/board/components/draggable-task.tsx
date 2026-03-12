@@ -2,7 +2,7 @@ import { Box, Typography, Paper, IconButton } from '@mui/material';
 import { useDraggable } from '@dnd-kit/core';
 import CloseIcon from '@mui/icons-material/Close';
 
-import { COLORS } from '../../../constants/theme';
+import { COLORS } from '../../../theme/colors';
 import { STATUS_COLORS, type Task } from '../../projects/constants';
 
 type DraggableTaskProps = {

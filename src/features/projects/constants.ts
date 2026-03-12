@@ -29,3 +29,12 @@ export const STATUS_COLORS: Record<Status, string> = {
   review: COLORS.light.status.review,
   done: COLORS.light.status.done,
 };
+
+import type { TaskPriority } from '../../types.ts';
+
+export const PRIORITY_COLORS: Record<TaskPriority, string> = {
+  critical: '#d32f2f',
+  high: '#f57c00',
+  medium: '#0288d1',
+  low: '#757575',
+};

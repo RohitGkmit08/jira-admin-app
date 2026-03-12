@@ -42,6 +42,26 @@ export function ColorModeProvider({ children }: Props) {
           position="top-right"
           toastOptions={{
             duration: 3000,
+            success: {
+              style: {
+                background: '#4caf50',
+                color: '#fff',
+              },
+              iconTheme: {
+                primary: '#fff',
+                secondary: '#4caf50',
+              },
+            },
+            error: {
+              style: {
+                background: '#f44336',
+                color: '#fff',
+              },
+              iconTheme: {
+                primary: '#fff',
+                secondary: '#f44336',
+              },
+            },
             style: {
               borderRadius: '8px',
               fontSize: '14px',

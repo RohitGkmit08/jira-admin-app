@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Typography } from '@mui/material';
 import { useDroppable } from '@dnd-kit/core';
 
-import { COLORS } from '../../../constants/theme';
+import { COLORS } from '../../../theme/colors';
 import {
   STATUS_COLORS,
   type Task,

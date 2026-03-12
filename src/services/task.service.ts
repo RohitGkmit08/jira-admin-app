@@ -10,6 +10,7 @@ export const createTask = async (data: {
   description?: string;
   projectId: string;
   status: Status;
+  priority?: string;
 }) => {
   return await apiFetch('/tasks', {
     method: 'POST',
@@ -23,6 +24,7 @@ export const updateTask = async (
     title?: string;
     description?: string;
     status?: Status;
+    priority?: string;
   },
 ) => {
   return await apiFetch(`/tasks/${taskId}`, {

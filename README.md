@@ -1,32 +1,30 @@
-#  Jira Task Manager
+# Jira Task Manager
 
-A **multi-project, role-based task management system** inspired by Jira, built with a scalable architecture, strict workflow control, and audit tracking.
+A **multi-project, role-based task management system** inspired by Jira, built with a scalable architecture and strict workflow control.
 
 ---
 
 ## Features Overview
 
-* Multi-project support
-* Role-based access control (RBAC)
-* Kanban board with drag & drop
-* Strict task workflow (state machine)
-* Activity logging (audit trail)
+- Multi-project support
+- Role-based access control (RBAC)
+- Kanban board with drag & drop
+- Strict task workflow (state machine)
+- Project-level permissions
 
 ---
 
 ## System Architecture
-
 ```
 User (with role)
-   ↓
+  ↓
 Performs action
-   ↓
+  ↓
 Validated by:
-   - Workflow rules
-   ↓
+  - RBAC rules
+  - Workflow rules
+  ↓
 Task updated
-   ↓
-Activity logged
 ```
 
 ---
@@ -34,60 +32,45 @@ Activity logged
 ## Roles & Permissions
 
 ### Roles (Project-level)
-
 ```ts
-type Role = "admin" | "project_manager" | "member";
+type Role = "admin" | "member";
 ```
 
-###  Admin
+### Admin
+- Full system access
+- Create/Delete project
+- Add/Remove members
+- Assign roles
+- Create/Edit/Delete any task
+- Move tasks across any state
 
-* Full access
-* Create/Delete project
-* Add/Remove members
-* Assign roles
-* View all activity logs
-* Create/Edit/Delete any task
-* Move tasks (can override transitions if allowed)
-
-###  Project Manager
-
-* Full task control
-* Assign/unassign users
-* Move tasks (must follow workflow)
-* View all project data
-* Cannot manage roles or members
-
-###  Member
-
-* View tasks
-* Edit own/assigned tasks
-* Limited task movement
-* Cannot delete tasks
-* Cannot manage users
+### Member
+- View tasks
+- Edit tasks
+- Move tasks within workflow
+- Cannot delete projects
+- Cannot manage users
 
 ---
 
-##  Project System
+## Project System
 
 ### Features
-
-* Create project
-* List projects
-* Enter project (board view)
-* Add/remove users
-* Assign roles per project
+- Create project
+- List projects
+- Enter project (board view)
+- Manage project settings
 
 ### Rules
-
-* Users can belong to multiple projects
-* Roles are project-specific (same user can have different roles across projects)
+- Users can belong to multiple projects
+- Roles are project-specific
+- A user may have different roles across projects
 
 ---
 
 ## Task System
 
-### Schema
-
+### Task Schema
 ```ts
 Task {
   id
@@ -95,41 +78,31 @@ Task {
   description
   status
   priority
-  assigneeId
-  labels[]
-  dueDate
-  order
-
   projectId
-
-  createdBy
-  updatedBy
-
+  owner
   createdAt
   updatedAt
-  deleted
 }
 ```
 
 ### Features
-
-* Create / Edit / Delete tasks (soft delete)
-* Assign users
-* Set priority, labels, due date
-* Reorder tasks (drag & drop)
+- Create tasks
+- Edit tasks
+- Delete tasks
+- Change status
+- Set priority
+- Drag & drop between columns
 
 ---
 
-##  Workflow (State Machine)
+## Workflow (State Machine)
 
 ### States
-
 ```
 todo → in_progress → review → done
 ```
 
 ### Allowed Transitions
-
 ```ts
 const ALLOWED_TRANSITIONS = {
   todo: ["in_progress"],
@@ -140,154 +113,155 @@ const ALLOWED_TRANSITIONS = {
 ```
 
 ### Rules
-
-* No skipping states
-* Backward movement only if defined
-* `done` is locked
-* Validated on frontend (UX) and backend (strict)
+- No skipping states
+- Backward movement allowed only if defined
+- `done` state is locked
+- Validation occurs on both frontend and backend
 
 ---
 
 ## Drag & Drop
 
 ### Features
-
-* Move tasks across columns
-* Reorder within column
-* Visual validation (valid/invalid drops)
+- Move tasks across columns
+- Reorder tasks
+- Real-time board updates
 
 ### Flow
-
 1. Drag task
-2. Detect target column
+2. Detect destination column
 3. Validate transition
-4. Update UI (optimistic)
-5. Persist via backend
+4. Update UI (optimistic update)
+5. Persist change via API
 6. Revert if invalid
 
 ---
 
-##  Authentication
+## Authentication
 
 ### Features
-
-* Login / Logout
-* JWT-based session
-* Current user context
+- Login / Logout
+- JWT-based authentication
+- Protected routes
 
 ---
 
-##  Authorization (RBAC)
+## Authorization (RBAC)
 
 ### Checks
+- Task creation
+- Task updates
+- Task deletion
+- Task movement
+- Project access
 
-* Edit/Delete task
-* Move task
-* Assign users
-* Manage project members
-
-### Example Logic
-
-```ts
-Admin → full access
-PM → full task control
-Member → limited access
+### Logic
 ```
-
----
-
-## Activity Log
-
-### Purpose
-
-* Track all system actions
-* Enable audit and monitoring
-
-### Schema
-
-```ts
-ActivityLog {
-  id
-  projectId
-  taskId?
-  userId
-  action
-  from?
-  to?
-  metadata?
-  createdAt
-}
+Admin  → full access
+Member → limited actions
 ```
-
-### Actions
-
-* TASK_CREATED
-* TASK_UPDATED
-* TASK_DELETED
-* STATUS_CHANGED
-* ASSIGNED
-* UNASSIGNED
-* PROJECT_CREATED
-* MEMBER_ADDED
-* ROLE_UPDATED
-
-### Features
-
-* View logs per project
-* Admin can view all logs
-* Filter by user, task, date
 
 ---
 
 ## Relationships
-
-* User ↔ Project → Many-to-many (`ProjectUser`)
-* Project → Task → One-to-many
-* Task → ActivityLog → One-to-many
-* User → Task → via `assigneeId`
+```
+User    ↔ Project  →  Many-to-many
+Project →  Task    →  One-to-many
+User    →  Task    →  owner
+```
 
 ---
 
-## Backend (Strapi)
+## Backend Architecture
+
+### Stack
+- Node.js
+- Express
+- MongoDB
+- Mongoose
+- JWT Authentication
 
 ### Responsibilities
-
-* Authentication (JWT)
-* Role validation (project-level RBAC)
-* Transition validation (workflow rules)
-* CRUD operations
-* Activity logging
-* Data integrity
-
-### Notes
-
-* Uses **auto-generated CRUD APIs** from Strapi collections
-* Extended with **custom controllers/services** for:
-
-  * task transitions
-  * role-based actions
-  * activity logging
+- Authentication
+- Authorization (RBAC)
+- Workflow validation
+- Task CRUD operations
+- Project management
+- Data integrity enforcement
 
 ---
 
-##  Frontend Architecture
-
+## Frontend Architecture
 ```
-UI Components
+React UI Components
    ↓
-Hooks (React Query + logic)
+Hooks (state + logic)
    ↓
 Services (API layer)
    ↓
-Backend (Strapi)
+Express Backend
+   ↓
+MongoDB
 ```
+
+---
+
+## Tech Stack
+
+### Frontend
+- React
+- TypeScript
+- Vite
+- Material UI
+- dnd-kit (drag & drop)
+
+### Backend
+- Node.js
+- Express
+- MongoDB
+- Mongoose
+- JWT Authentication
 
 ---
 
 ## Edge Cases
 
-* User removed from project → loses access
-* Task in `done` → locked
-* Invalid drag → revert
-* Soft-deleted tasks hidden from UI
-* Same user → different roles per project
+- User removed from project → access revoked
+- Task in `done` → locked state
+- Invalid drag operation → revert UI
+- Unauthorized action → blocked by RBAC
+- Same user can have different roles in different projects
+
+---
+
+## Project Structure
+```
+frontend/
+  src/
+    components/
+    features/
+      projects/
+      board/
+      login/
+    services/
+    router/
+    theme/
+
+backend/
+  src/
+    controllers/
+    models/
+    routes/
+    middleware/
+```
+
+---
+
+## Future Improvements
+
+- Activity log
+- Task comments
+- File attachments
+- Notifications
+- Advanced filtering
+- Search across projects

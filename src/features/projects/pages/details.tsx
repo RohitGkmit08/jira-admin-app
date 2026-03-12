@@ -32,31 +32,9 @@ import {
   deleteTask,
 } from '../../../services/task.service';
 import { routeHelpers } from '../../../constants/routes';
-
-// Assuming local type definitions or imported from elsewhere. If not available we should just use any or reconstruct them.
-// Let's reconstruct the minimal types for compiling
-type TaskPriority = 'critical' | 'high' | 'medium' | 'low';
-type TaskType = 'task' | 'bug' | 'story' | 'subtask';
-
-type ITask = {
-  _id: string;
-  title: string;
-  description?: string;
-  status: Status;
-  priority?: TaskPriority;
-  type?: TaskType;
-  assignee?: { _id: string } | string | null;
-  dueDate?: string | null;
-  taskKey?: string;
-};
-
-type IProjectMember = {
-  userId: string;
-  name: string;
-};
+import type { ITask, TaskPriority } from '../../../types.ts';
 
 const PRIORITY_OPTIONS: TaskPriority[] = ['critical', 'high', 'medium', 'low'];
-const TYPE_OPTIONS: TaskType[] = ['task', 'bug', 'story', 'subtask'];
 
 export default function ProjectDetailsPage() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -68,28 +46,20 @@ export default function ProjectDetailsPage() {
   const [tasks, setTasks] = useState<ITask[]>([]);
   const [tasksLoading, setTasksLoading] = useState(true);
 
-  const [members, setMembers] = useState<IProjectMember[]>([]);
-
-  // Create task state
   const [open, setOpen] = useState(false);
   const [createTaskLoading, setCreateTaskLoading] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<Status>('todo');
+
   const [taskTitle, setTaskTitle] = useState('');
   const [taskDescription, setTaskDescription] = useState('');
   const [taskPriority, setTaskPriority] = useState<TaskPriority>('medium');
-  const [taskType, setTaskType] = useState<TaskType>('task');
-  const [taskAssignee, setTaskAssignee] = useState('');
-  const [taskDueDate, setTaskDueDate] = useState('');
 
-  // Edit task state
   const [selectedTask, setSelectedTask] = useState<ITask | null>(null);
   const [saveTaskLoading, setSaveTaskLoading] = useState(false);
+
   const [editedTitle, setEditedTitle] = useState('');
   const [editedDescription, setEditedDescription] = useState('');
   const [editedPriority, setEditedPriority] = useState<TaskPriority>('medium');
-  const [editedType, setEditedType] = useState<TaskType>('task');
-  const [editedAssignee, setEditedAssignee] = useState('');
-  const [editedDueDate, setEditedDueDate] = useState('');
 
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -99,12 +69,8 @@ export default function ProjectDetailsPage() {
     const fetchData = async () => {
       try {
         setTasksLoading(true);
-        const [tasksData, membersData] = await Promise.all([
-          getTasks(projectId),
-          getMembers(projectId),
-        ]);
+        const tasksData = await getTasks(projectId);
         setTasks(tasksData);
-        setMembers(membersData);
       } catch (err) {
         const message =
           err instanceof Error ? err.message : 'Failed to load board';
@@ -121,9 +87,6 @@ export default function ProjectDetailsPage() {
     setTaskTitle('');
     setTaskDescription('');
     setTaskPriority('medium');
-    setTaskType('task');
-    setTaskAssignee('');
-    setTaskDueDate('');
   };
 
   const handleCreate = async () => {
@@ -131,20 +94,20 @@ export default function ProjectDetailsPage() {
 
     try {
       setCreateTaskLoading(true);
+
       const newTask = await createTask({
         title: taskTitle.trim(),
         description: taskDescription.trim(),
         projectId,
         status: selectedStatus,
         priority: taskPriority,
-        type: taskType,
-        assignee: taskAssignee || undefined,
-        dueDate: taskDueDate || undefined,
       });
 
       setTasks((prev) => [...prev, newTask]);
+
       resetCreateForm();
       setOpen(false);
+
       toast.success('Task added');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to add task';
@@ -157,7 +120,9 @@ export default function ProjectDetailsPage() {
   const handleDelete = async (taskId: string) => {
     try {
       await deleteTask(taskId);
+
       setTasks((prev) => prev.filter((task) => task._id !== taskId));
+
       toast.success('Task deleted');
     } catch (err) {
       const message =
@@ -170,16 +135,7 @@ export default function ProjectDetailsPage() {
     setSelectedTask(task);
     setEditedTitle(task.title);
     setEditedDescription(task.description ?? '');
-    setEditedPriority(task.priority);
-    setEditedType(task.type);
-    setEditedAssignee(
-      typeof task.assignee === 'object' && task.assignee
-        ? task.assignee._id
-        : '',
-    );
-    setEditedDueDate(
-      task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
-    );
+    setEditedPriority(task.priority || 'medium');
   };
 
   const handleDetailSave = async () => {
@@ -187,13 +143,11 @@ export default function ProjectDetailsPage() {
 
     try {
       setSaveTaskLoading(true);
+
       const updatedTask = await updateTask(selectedTask._id, {
         title: editedTitle,
         description: editedDescription,
         priority: editedPriority,
-        type: editedType,
-        assignee: editedAssignee || null,
-        dueDate: editedDueDate || null,
       });
 
       setTasks((prev) =>
@@ -203,6 +157,7 @@ export default function ProjectDetailsPage() {
       );
 
       setSelectedTask(null);
+
       toast.success('Task updated');
     } catch (err) {
       const message =
@@ -215,19 +170,23 @@ export default function ProjectDetailsPage() {
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
+
     if (!over) return;
 
     const taskId = active.id as string;
     const newStatus = over.id as Status;
 
     const task = tasks.find((task) => task._id === taskId);
+
     if (!task || task.status === newStatus) return;
 
     try {
       const updatedTask = await updateTask(taskId, { status: newStatus });
+
       setTasks((prev) =>
         prev.map((task) => (task._id === taskId ? updatedTask : task)),
       );
+
       toast.success('Status updated');
     } catch (err) {
       const message =
@@ -238,7 +197,6 @@ export default function ProjectDetailsPage() {
 
   const activeTask = tasks.find((task) => task._id === activeId);
 
-  // Reusable task form fields
   const renderTaskFields = (
     title: string,
     setTitle: (v: string) => void,
@@ -246,12 +204,6 @@ export default function ProjectDetailsPage() {
     setDescription: (v: string) => void,
     priority: TaskPriority,
     setPriority: (v: TaskPriority) => void,
-    type: TaskType,
-    setType: (v: TaskType) => void,
-    assignee: string,
-    setAssignee: (v: string) => void,
-    dueDate: string,
-    setDueDate: (v: string) => void,
   ) => (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
       <TextField
@@ -273,69 +225,21 @@ export default function ProjectDetailsPage() {
         InputLabelProps={{ shrink: true }}
       />
 
-      {/* Type + Priority row */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-        <FormControl fullWidth size="small">
-          <InputLabel>Type</InputLabel>
-          <Select
-            value={type}
-            label="Type"
-            onChange={(e) => setType(e.target.value as TaskType)}
-          >
-            {TYPE_OPTIONS.map((t) => (
-              <MenuItem key={t} value={t} sx={{ textTransform: 'capitalize' }}>
-                {t}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+      <FormControl fullWidth size="small">
+        <InputLabel>Priority</InputLabel>
 
-        <FormControl fullWidth size="small">
-          <InputLabel>Priority</InputLabel>
-          <Select
-            value={priority}
-            label="Priority"
-            onChange={(e) => setPriority(e.target.value as TaskPriority)}
-          >
-            {PRIORITY_OPTIONS.map((p) => (
-              <MenuItem key={p} value={p} sx={{ textTransform: 'capitalize' }}>
-                {p}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Box>
-
-      {/* Assignee + Due date row */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-        <FormControl fullWidth size="small">
-          <InputLabel>Assignee</InputLabel>
-          <Select
-            value={assignee}
-            label="Assignee"
-            onChange={(e) => setAssignee(e.target.value)}
-          >
-            <MenuItem value="">
-              <em>Unassigned</em>
+        <Select
+          value={priority}
+          label="Priority"
+          onChange={(e) => setPriority(e.target.value as TaskPriority)}
+        >
+          {PRIORITY_OPTIONS.map((p) => (
+            <MenuItem key={p} value={p} sx={{ textTransform: 'capitalize' }}>
+              {p}
             </MenuItem>
-            {members.map((m) => (
-              <MenuItem key={m.userId} value={m.userId}>
-                {m.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <TextField
-          fullWidth
-          label="Due Date"
-          type="date"
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
-          InputLabelProps={{ shrink: true }}
-          size="small"
-        />
-      </Box>
+          ))}
+        </Select>
+      </FormControl>
     </Box>
   );
 
@@ -448,12 +352,6 @@ export default function ProjectDetailsPage() {
           setTaskDescription,
           taskPriority,
           setTaskPriority,
-          taskType,
-          setTaskType,
-          taskAssignee,
-          setTaskAssignee,
-          taskDueDate,
-          setTaskDueDate,
         )}
       </Dialog>
 
@@ -479,12 +377,6 @@ export default function ProjectDetailsPage() {
           setEditedDescription,
           editedPriority,
           setEditedPriority,
-          editedType,
-          setEditedType,
-          editedAssignee,
-          setEditedAssignee,
-          editedDueDate,
-          setEditedDueDate,
         )}
       </Dialog>
     </PageContainer>
