@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-
+import toast from 'react-hot-toast';
 const mockNavigate = vi.fn();
 
 vi.mock('react-router-dom', async () => {
@@ -7,7 +7,6 @@ vi.mock('react-router-dom', async () => {
     await vi.importActual<typeof import('react-router-dom')>(
       'react-router-dom',
     );
-
   return {
     ...actual,
     useNavigate: () => mockNavigate,
@@ -66,6 +65,7 @@ describe('Login Flow', () => {
   const getPasswordInput = () => screen.getByLabelText('Password');
   const getSignInButton = () =>
     screen.getByRole('button', { name: /sign in/i });
+
   const getEmailRequiredError = () => screen.getByText(/email.*required/i);
   const getPasswordRequiredError = () =>
     screen.getByText(/password.*required/i);
@@ -84,8 +84,7 @@ describe('Login Flow', () => {
     await user.click(getSignInButton());
   };
 
-  // tests
-  test('renders login form', () => {
+  test('renders login form with email, password and sign in button', () => {
     expect(getEmailInput()).toBeInTheDocument();
     expect(getPasswordInput()).toBeInTheDocument();
     expect(getSignInButton()).toBeInTheDocument();
@@ -99,19 +98,13 @@ describe('Login Flow', () => {
     expect(getPasswordInput()).toHaveValue('password123');
   });
 
-  test('allows user to click sign in button', async () => {
+  // tests
+  test('shows validation errors when email field is empty or invalid', async () => {
+    // empty email
     await clickSignIn();
-    expect(getSignInButton()).toBeInTheDocument();
-  });
-
-  test('shows validation errors when submitting empty form', async () => {
-    await clickSignIn();
-
     expect(getEmailRequiredError()).toBeInTheDocument();
-    expect(getPasswordRequiredError()).toBeInTheDocument();
-  });
 
-  test('shows error when email format is invalid', async () => {
+    // invalid email format
     await typeEmail('invalid-email');
     await typePassword('password123');
     await clickSignIn();
@@ -119,10 +112,14 @@ describe('Login Flow', () => {
     expect(getInvalidEmailError()).toBeInTheDocument();
   });
 
-  test('shows error when password is shorter than minimum length', async () => {
+  test('shows validation errors when password field is empty or too short', async () => {
+    // empty password
+    await clickSignIn();
+    expect(getPasswordRequiredError()).toBeInTheDocument();
+
+    // short password
     await typeEmail('test@example.com');
     await typePassword('abc');
-
     await clickSignIn();
 
     expect(
@@ -152,6 +149,22 @@ describe('Login Flow', () => {
       email: 'test@example.com',
       password: 'password123',
     });
+  });
+
+  test('shows error toast and prevents navigation when login fails', async () => {
+    const mockedLoginUser = vi.mocked(loginUser);
+
+    mockedLoginUser.mockRejectedValue(new Error('Invalid credentials'));
+
+    await typeEmail('test@example.com');
+    await typePassword('password123');
+    await clickSignIn();
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalled();
+    });
+
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   test('navigates to projects page after successful login', async () => {
