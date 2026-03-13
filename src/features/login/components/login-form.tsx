@@ -3,7 +3,6 @@ import toast from 'react-hot-toast';
 import type { FormEvent } from 'react';
 
 import Input from '../../../components/common/input';
-import PasswordInput from '../../../components/common/input/password-input';
 import Button from '../../../components/common/button';
 import { useLogin } from '../hooks/use-login';
 
@@ -30,16 +29,15 @@ const LoginForm = () => {
           autoComplete="email"
         />
 
-        <PasswordInput
+        <Input
           label="Password"
           name="password"
           value={form.password}
           onChange={handleChange}
           error={Boolean(errors.password)}
           helperText={errors.password}
-          autoComplete="current-password"
+          autoComplete="password"
         />
-
         <Button type="submit" variant="contained" loading={loading} fullWidth>
           Sign in
         </Button>

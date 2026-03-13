@@ -1,5 +1,6 @@
 import { vi } from 'vitest';
 import toast from 'react-hot-toast';
+
 const mockNavigate = vi.fn();
 
 vi.mock('react-router-dom', async () => {
@@ -7,17 +8,18 @@ vi.mock('react-router-dom', async () => {
     await vi.importActual<typeof import('react-router-dom')>(
       'react-router-dom',
     );
+
   return {
     ...actual,
     useNavigate: () => mockNavigate,
   };
 });
 
-vi.mock('../api/auth.api', () => ({
+vi.mock('../../api/auth.api', () => ({
   loginUser: vi.fn(),
 }));
 
-vi.mock('../services/auth.service', () => ({
+vi.mock('../../services/auth.service', () => ({
   authService: {
     setAuth: vi.fn(),
   },
@@ -36,9 +38,9 @@ import userEvent from '@testing-library/user-event';
 import { describe, test, expect, beforeEach, afterEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 
-import { loginUser } from '../api/auth.api';
-import { ROUTES } from '../constants/routes';
-import LoginForm from '../features/login/components/login-form';
+import { loginUser } from '../../api/auth.api';
+import { ROUTES } from '../../constants/routes';
+import LoginForm from '../../features/login/components/login-form';
 
 afterEach(() => {
   cleanup();
@@ -67,8 +69,10 @@ describe('Login Flow', () => {
     screen.getByRole('button', { name: /sign in/i });
 
   const getEmailRequiredError = () => screen.getByText(/email.*required/i);
+
   const getPasswordRequiredError = () =>
     screen.getByText(/password.*required/i);
+
   const getInvalidEmailError = () => screen.getByText(/invalid email/i);
 
   // user actions
@@ -98,13 +102,11 @@ describe('Login Flow', () => {
     expect(getPasswordInput()).toHaveValue('password123');
   });
 
-  // tests
   test('shows validation errors when email field is empty or invalid', async () => {
-    // empty email
     await clickSignIn();
+
     expect(getEmailRequiredError()).toBeInTheDocument();
 
-    // invalid email format
     await typeEmail('invalid-email');
     await typePassword('password123');
     await clickSignIn();
@@ -113,11 +115,10 @@ describe('Login Flow', () => {
   });
 
   test('shows validation errors when password field is empty or too short', async () => {
-    // empty password
     await clickSignIn();
+
     expect(getPasswordRequiredError()).toBeInTheDocument();
 
-    // short password
     await typeEmail('test@example.com');
     await typePassword('abc');
     await clickSignIn();
@@ -143,7 +144,9 @@ describe('Login Flow', () => {
     await typePassword('password123');
     await clickSignIn();
 
-    expect(mockedLoginUser).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(mockedLoginUser).toHaveBeenCalledTimes(1);
+    });
 
     expect(mockedLoginUser).toHaveBeenCalledWith({
       email: 'test@example.com',
@@ -182,6 +185,10 @@ describe('Login Flow', () => {
     await typeEmail('test@example.com');
     await typePassword('password123');
     await clickSignIn();
+
+    await waitFor(() => {
+      expect(loginUser).toHaveBeenCalled();
+    });
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(ROUTES.APP.PROJECTS);
