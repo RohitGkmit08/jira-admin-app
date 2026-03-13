@@ -359,7 +359,7 @@ export default function ProjectDetailsPage() {
       <Dialog
         open={Boolean(selectedTask)}
         onClose={() => setSelectedTask(null)}
-        title={selectedTask?.taskKey ?? 'Task Details'}
+        title={'Task Details'}
         actions={
           <FormActions
             onCancel={() => setSelectedTask(null)}

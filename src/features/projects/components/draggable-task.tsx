@@ -54,10 +54,6 @@ export default function DraggableTask({
         justifyContent="space-between"
         mb={0.5}
       >
-        <Typography fontSize={11} color="text.secondary" fontFamily="monospace">
-          {task.taskKey}
-        </Typography>
-
         <IconButton
           size="small"
           onClick={(e) => {
