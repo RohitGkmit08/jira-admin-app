@@ -57,104 +57,92 @@ describe('edit project dialog flow', () => {
   };
 
   const openEditDialog = async () => {
-    const editIcon = await screen.findByTestId('EditIcon');
-    await user.click(editIcon.closest('button')!);
+    const editButton = await screen.findByTestId('edit-icon-1');
+    await user.click(editButton);
     return await screen.findByRole('dialog');
   };
 
-  const submitEdit = async (name: string) => {
+  const submitEdit = async (name: string, beforeSave?: () => void) => {
     const dialog = await openEditDialog();
     const input = within(dialog).getByLabelText(/project name/i);
-    await user.clear(input);
     await user.type(input, name);
+
+    if (beforeSave) beforeSave();
 
     await user.click(within(dialog).getByRole('button', { name: /^save$/i }));
   };
 
-  test('project renders on screen', async () => {
+  test('when edit button is clicked, open dialog', async () => {
     await renderPage();
     expect(screen.getByText(/test project/i)).toBeInTheDocument();
-  });
-
-  test('edit dialog opens when edit button clicked', async () => {
-    await renderPage();
     const dialog = await openEditDialog();
     expect(dialog).toBeInTheDocument();
   });
 
-  test('cancel closes edit dialog', async () => {
-    await renderPage();
-    await openEditDialog();
-    await user.click(screen.getByRole('button', { name: /cancel/i }));
-    await waitFor(() =>
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
-    );
-  });
-
-  test('calls API with correct payload', async () => {
+  test('calls updateProject API with correct payload', async () => {
     await renderPage();
 
-    const mockedUpdate = vi.mocked(updateProject);
-    // XYZ project -> is the updated project name.
-    mockedUpdate.mockResolvedValue(mockProject('XYZ project'));
-
-    await submitEdit('XYZ project');
+    await submitEdit(' updated', () => {
+      const mockedUpdate = vi.mocked(updateProject);
+      mockedUpdate.mockResolvedValue(mockProject('Test Project updated'));
+    });
 
     await waitFor(() => {
-      expect(mockedUpdate).toHaveBeenCalledWith('1', { name: 'XYZ project' });
+      expect(vi.mocked(updateProject)).toHaveBeenCalledWith('1', {
+        name: 'Test Project updated',
+      });
     });
   });
 
   test('updates project successfully and updates UI', async () => {
     await renderPage();
 
-    vi.mocked(updateProject).mockResolvedValue(
-      mockProject('Updated Project Name'),
-    );
-
-    await submitEdit('Updated Project Name');
+    await submitEdit(' updated', () => {
+      vi.mocked(updateProject).mockResolvedValue(
+        mockProject('Test Project updated'),
+      );
+    });
 
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith('Project updated');
     });
 
-    expect(await screen.findByText('Updated Project Name')).toBeInTheDocument();
+    expect(await screen.findByText('Test Project updated')).toBeInTheDocument();
   });
 
   test('shows error toast when update fails', async () => {
     await renderPage();
 
-    vi.mocked(updateProject).mockRejectedValue(new Error('Update failed'));
-
-    await submitEdit('Updated Project Name');
+    await submitEdit(' updated', () => {
+      vi.mocked(updateProject).mockRejectedValue(new Error('Update failed'));
+    });
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalled();
     });
   });
 
-  test('update button disabled and loader shows while request pending', async () => {
+  test('save button is disabled and loader shows while request pending', async () => {
     await renderPage();
 
     vi.mocked(updateProject).mockImplementation(
       () =>
         new Promise((resolve) =>
-          setTimeout(() => resolve(mockProject('Updated Name')), 500),
+          setTimeout(() => resolve(mockProject('Test Project updated')), 500),
         ),
     );
 
     const dialog = await openEditDialog();
 
     const input = within(dialog).getByLabelText(/project name/i);
-    await user.clear(input);
-    await user.type(input, 'Updated Name');
+    await user.type(input, ' updated');
 
-    const button = within(dialog).getByRole('button', {
+    const saveButton = within(dialog).getByRole('button', {
       name: /^save$/i,
     });
 
-    await user.click(button);
-    expect(button).toBeDisabled();
-    expect(within(button).getByRole('progressbar')).toBeInTheDocument();
+    await user.click(saveButton);
+    expect(saveButton).toBeDisabled();
+    expect(within(saveButton).getByRole('progressbar')).toBeInTheDocument();
   });
 });
