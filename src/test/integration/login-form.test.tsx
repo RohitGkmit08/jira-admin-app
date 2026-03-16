@@ -1,5 +1,13 @@
-import { vi } from 'vitest';
+import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest';
 import toast from 'react-hot-toast';
+import '@testing-library/jest-dom/vitest';
+import { render, screen, waitFor, cleanup } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
+
+import { loginUser } from '../../api/auth.api';
+import { ROUTES } from '../../constants/routes';
+import LoginForm from '../../features/login/components/login-form';
 
 const mockNavigate = vi.fn();
 
@@ -31,16 +39,6 @@ vi.mock('react-hot-toast', () => ({
     error: vi.fn(),
   },
 }));
-
-import '@testing-library/jest-dom/vitest';
-import { render, screen, waitFor, cleanup } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { describe, test, expect, beforeEach, afterEach } from 'vitest';
-import { MemoryRouter } from 'react-router-dom';
-
-import { loginUser } from '../../api/auth.api';
-import { ROUTES } from '../../constants/routes';
-import LoginForm from '../../features/login/components/login-form';
 
 const mockLoginSuccess = () => ({
   token: 'mock-token',
