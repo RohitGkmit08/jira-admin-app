@@ -71,6 +71,15 @@ describe('Login Flow', () => {
     );
   };
 
+  const typeCredentials = async (email: string, password: string) => {
+    await user.type(screen.getByLabelText(/email/i), email);
+    await user.type(screen.getByLabelText(/password/i), password);
+  };
+
+  const clickSignIn = async () => {
+    await user.click(screen.getByRole('button', { name: /sign in/i }));
+  };
+
   test('renders login form', () => {
     renderLoginPage();
 
@@ -84,22 +93,34 @@ describe('Login Flow', () => {
   test('allows user to type email and password', async () => {
     renderLoginPage();
 
-    const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/password/i);
+    await typeCredentials('test@example.com', 'password123');
 
-    await user.type(emailInput, 'test@example.com');
-    await user.type(passwordInput, 'password123');
-
-    expect(emailInput).toHaveValue('test@example.com');
-    expect(passwordInput).toHaveValue('password123');
+    expect(screen.getByLabelText(/email/i)).toHaveValue('test@example.com');
+    expect(screen.getByLabelText(/password/i)).toHaveValue('password123');
   });
 
-  test('shows validation errors when fields are empty', async () => {
+  test('shows error when email is empty', async () => {
     renderLoginPage();
 
-    const button = screen.getByRole('button', { name: /sign in/i });
+    await user.type(screen.getByLabelText(/password/i), 'password123');
+    await clickSignIn();
 
-    await user.click(button);
+    expect(screen.getByText(/email.*required/i)).toBeInTheDocument();
+  });
+
+  test('shows error when password is empty', async () => {
+    renderLoginPage();
+
+    await user.type(screen.getByLabelText(/email/i), 'test@example.com');
+    await clickSignIn();
+
+    expect(screen.getByText(/password.*required/i)).toBeInTheDocument();
+  });
+
+  test('shows validation errors when both fields are empty', async () => {
+    renderLoginPage();
+
+    await clickSignIn();
 
     expect(screen.getByText(/email.*required/i)).toBeInTheDocument();
     expect(screen.getByText(/password.*required/i)).toBeInTheDocument();
@@ -113,10 +134,8 @@ describe('Login Flow', () => {
 
     mockedLoginUser.mockResolvedValue(expectedAuth);
 
-    await user.type(screen.getByLabelText(/email/i), 'test@example.com');
-    await user.type(screen.getByLabelText(/password/i), 'password123');
-
-    await user.click(screen.getByRole('button', { name: /sign in/i }));
+    await typeCredentials('test@example.com', 'password123');
+    await clickSignIn();
 
     await waitFor(() => {
       expect(mockedLoginUser).toHaveBeenCalledTimes(1);
@@ -132,13 +151,10 @@ describe('Login Flow', () => {
     renderLoginPage();
 
     const mockedLoginUser = vi.mocked(loginUser);
-
     mockedLoginUser.mockRejectedValue(new Error('Invalid credentials'));
 
-    await user.type(screen.getByLabelText(/email/i), 'test@example.com');
-    await user.type(screen.getByLabelText(/password/i), 'password123');
-
-    await user.click(screen.getByRole('button', { name: /sign in/i }));
+    await typeCredentials('test@example.com', 'password123');
+    await clickSignIn();
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalled();
@@ -151,22 +167,16 @@ describe('Login Flow', () => {
     renderLoginPage();
 
     const mockedLoginUser = vi.mocked(loginUser);
-    const expectedAuth = mockLoginSuccess();
+    mockedLoginUser.mockResolvedValue(mockLoginSuccess());
 
-    mockedLoginUser.mockResolvedValue(expectedAuth);
-
-    await user.type(screen.getByLabelText(/email/i), 'test@example.com');
-    await user.type(screen.getByLabelText(/password/i), 'password123');
-
-    await user.click(screen.getByRole('button', { name: /sign in/i }));
+    await typeCredentials('test@example.com', 'password123');
+    await clickSignIn();
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(ROUTES.APP.PROJECTS);
     });
 
-    await waitFor(() => {
-      expect(toast.success).toHaveBeenCalled();
-    });
+    expect(toast.success).toHaveBeenCalled();
   });
 
   test('stores auth token after successful login', async () => {
@@ -175,16 +185,16 @@ describe('Login Flow', () => {
     renderLoginPage();
 
     const expectedAuth = mockLoginSuccess();
-
     vi.mocked(loginUser).mockResolvedValue(expectedAuth);
 
-    await user.type(screen.getByLabelText(/email/i), 'test@example.com');
-    await user.type(screen.getByLabelText(/password/i), 'password123');
-
-    await user.click(screen.getByRole('button', { name: /sign in/i }));
+    await typeCredentials('test@example.com', 'password123');
+    await clickSignIn();
 
     await waitFor(() => {
-      expect(authService.setAuth).toHaveBeenCalledWith(expectedAuth);
+      expect(authService.setAuth).toHaveBeenCalledWith(
+        expectedAuth.token,
+        expectedAuth.user,
+      );
     });
   });
 
@@ -197,16 +207,14 @@ describe('Login Flow', () => {
       .mockRejectedValueOnce(new Error('Invalid credentials'))
       .mockResolvedValueOnce(mockLoginSuccess());
 
-    await user.type(screen.getByLabelText(/email/i), 'test@example.com');
-    await user.type(screen.getByLabelText(/password/i), 'password123');
-
-    await user.click(screen.getByRole('button', { name: /sign in/i }));
+    await typeCredentials('test@example.com', 'password123');
+    await clickSignIn();
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalled();
     });
 
-    await user.click(screen.getByRole('button', { name: /sign in/i }));
+    await clickSignIn();
 
     await waitFor(() => {
       expect(mockedLoginUser).toHaveBeenCalledTimes(2);
