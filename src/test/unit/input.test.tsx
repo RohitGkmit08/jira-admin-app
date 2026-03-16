@@ -11,14 +11,14 @@ describe('Input component', () => {
 
     render(<Input label="Password" type="password" />);
 
-    const input = screen.getByLabelText(/password/i);
-    const toggleBtn = screen.getByRole('button');
+    const inputLabelText = screen.getByLabelText(/password/i);
+    const visibilityButton = screen.getByRole('button');
 
-    expect(input).toHaveAttribute('type', 'password');
+    expect(inputLabelText).toHaveAttribute('type', 'password');
 
-    fireEvent.mouseDown(toggleBtn);
-    await user.click(toggleBtn);
+    fireEvent.mouseDown(visibilityButton);
+    await user.click(visibilityButton);
 
-    expect(input).toHaveAttribute('type', 'text');
+    expect(inputLabelText).toHaveAttribute('type', 'text');
   });
 });
