@@ -167,11 +167,7 @@ describe('Project Creation Flow', () => {
     });
 
     await user.click(button);
-
-    // Button should be disabled
     expect(button).toBeDisabled();
-
-    // Mui CircularProgress adds a role="progressbar"
     expect(within(button).getByRole('progressbar')).toBeInTheDocument();
   });
 
