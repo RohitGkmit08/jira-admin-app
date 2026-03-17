@@ -14,15 +14,9 @@ vi.mock('../../services/project.service', () => ({
 }));
 
 import '@testing-library/jest-dom/vitest';
-import {
-  render,
-  screen,
-  waitFor,
-  cleanup,
-  within,
-} from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, test, expect, beforeEach, afterEach } from 'vitest';
+import { describe, test, expect, beforeEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 
 import ProjectsPage from '../../features/projects/pages';
@@ -31,10 +25,6 @@ import { createProject, getProjects } from '../../services/project.service';
 const mockProject = (name = 'Test Project') => ({
   _id: crypto.randomUUID(),
   name,
-});
-
-afterEach(() => {
-  cleanup();
 });
 
 describe('Project Creation Flow', () => {
@@ -59,24 +49,25 @@ describe('Project Creation Flow', () => {
   };
 
   const openDialog = async () => {
-    await user.click(screen.getByRole('button', { name: /create project/i }));
+    await user.click(screen.getByRole('button', { name: /^create project$/i }));
 
-    return await screen.findByRole('dialog');
+    return screen.findByRole('dialog');
   };
 
-  const submitProject = async (name: string) => {
+  const submitProjectForm = async (name: string) => {
     const dialog = await openDialog();
+    const dialogUtils = within(dialog);
 
-    await user.type(within(dialog).getByLabelText(/project name/i), name);
+    await user.type(dialogUtils.getByLabelText(/project name/i), name);
 
-    await user.click(within(dialog).getByRole('button', { name: /^create$/i }));
+    await user.click(dialogUtils.getByRole('button', { name: /^create$/i }));
   };
 
   test('shows create project button on page load', async () => {
     await renderPage();
 
     expect(
-      screen.getByRole('button', { name: /create project/i }),
+      screen.getByRole('button', { name: /^create project$/i }),
     ).toBeInTheDocument();
   });
 
@@ -92,13 +83,14 @@ describe('Project Creation Flow', () => {
     await renderPage();
 
     const dialog = await openDialog();
+    const dialogUtils = within(dialog);
 
     await user.type(
-      within(dialog).getByLabelText(/project name/i),
+      dialogUtils.getByLabelText(/project name/i),
       'Test Project',
     );
 
-    await user.click(within(dialog).getByRole('button', { name: /cancel/i }));
+    await user.click(dialogUtils.getByRole('button', { name: /cancel/i }));
 
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -112,7 +104,7 @@ describe('Project Creation Flow', () => {
 
     mockedCreate.mockResolvedValue(mockProject('Test Project'));
 
-    await submitProject('Test Project');
+    await submitProjectForm('Test Project');
 
     await waitFor(() => {
       expect(mockedCreate).toHaveBeenCalledWith({
@@ -126,7 +118,7 @@ describe('Project Creation Flow', () => {
 
     vi.mocked(createProject).mockResolvedValue(mockProject('Test Project'));
 
-    await submitProject('Test Project');
+    await submitProjectForm('Test Project');
 
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith('Project created');
@@ -140,7 +132,7 @@ describe('Project Creation Flow', () => {
 
     vi.mocked(createProject).mockRejectedValue(new Error('Failed'));
 
-    await submitProject('Test Project');
+    await submitProjectForm('Test Project');
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalled();
@@ -156,17 +148,19 @@ describe('Project Creation Flow', () => {
     );
 
     const dialog = await openDialog();
+    const dialogUtils = within(dialog);
 
     await user.type(
-      within(dialog).getByLabelText(/project name/i),
+      dialogUtils.getByLabelText(/project name/i),
       'Test Project',
     );
 
-    const button = within(dialog).getByRole('button', {
+    const button = dialogUtils.getByRole('button', {
       name: /^create$/i,
     });
 
     await user.click(button);
+
     expect(button).toBeDisabled();
     expect(within(button).getByRole('progressbar')).toBeInTheDocument();
   });
@@ -180,7 +174,7 @@ describe('Project Creation Flow', () => {
       .mockResolvedValueOnce(mockProject('Project One'))
       .mockResolvedValueOnce(mockProject('Project Two'));
 
-    await submitProject('Project One');
+    await submitProjectForm('Project One');
 
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -188,7 +182,7 @@ describe('Project Creation Flow', () => {
 
     expect(await screen.findByText('Project One')).toBeInTheDocument();
 
-    await submitProject('Project Two');
+    await submitProjectForm('Project Two');
 
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
