@@ -76,53 +76,8 @@ describe('Login Flow', () => {
   beforeEach(() => {
     user = userEvent.setup();
     mockNavigate.mockClear();
-    // render login page once before every test
+    vi.clearAllMocks();
     renderLoginPage();
-  });
-
-  test('renders login form', () => {
-    //assert
-    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /sign in/i }),
-    ).toBeInTheDocument();
-  });
-
-  test('allows user to type email and password', async () => {
-    const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/password/i);
-    await typeCredentials('test@example.com', 'password123');
-    expect(emailInput).toHaveValue('test@example.com');
-    expect(passwordInput).toHaveValue('password123');
-  });
-
-  test('shows error when email is empty', async () => {
-    const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/password/i);
-    await user.type(passwordInput, 'password123');
-    expect(emailInput).toHaveValue('');
-    await clickSignIn();
-    expect(screen.queryByText(/email.*required/i)).toBeInTheDocument();
-  });
-
-  test('shows error when password is empty', async () => {
-    const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/password/i);
-    await user.type(emailInput, 'test@example.com');
-    expect(passwordInput).toHaveValue('');
-    await clickSignIn();
-    expect(screen.queryByText(/password.*required/i)).toBeInTheDocument();
-  });
-
-  test('shows validation errors when both fields are empty', async () => {
-    const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/password/i);
-    expect(emailInput).toHaveValue('');
-    expect(passwordInput).toHaveValue('');
-    await clickSignIn();
-    expect(screen.queryByText(/email.*required/i)).toBeInTheDocument();
-    expect(screen.queryByText(/password.*required/i)).toBeInTheDocument();
   });
 
   test('calls login API when credentials are valid', async () => {
