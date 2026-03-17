@@ -122,6 +122,8 @@ describe('Login Flow', () => {
     await waitFor(() => {
       expect(mockedLoginUser).toHaveBeenCalledTimes(2);
     });
+    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.APP.PROJECTS);
+    expect(toast.success).toHaveBeenCalled();
   });
 
   test('navigates to projects page after successful login', async () => {
