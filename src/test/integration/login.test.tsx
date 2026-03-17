@@ -56,11 +56,6 @@ afterEach(() => {
 describe('Login Flow', () => {
   let user: ReturnType<typeof userEvent.setup>;
 
-  beforeEach(() => {
-    user = userEvent.setup();
-    mockNavigate.mockClear();
-  });
-
   const renderLoginPage = () => {
     render(
       <MemoryRouter>
@@ -78,9 +73,15 @@ describe('Login Flow', () => {
     await user.click(screen.getByRole('button', { name: /sign in/i }));
   };
 
-  test('renders login form', () => {
+  beforeEach(() => {
+    user = userEvent.setup();
+    mockNavigate.mockClear();
+    // render login page once before every test
     renderLoginPage();
+  });
 
+  test('renders login form', () => {
+    //assert
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
     expect(
@@ -89,52 +90,79 @@ describe('Login Flow', () => {
   });
 
   test('allows user to type email and password', async () => {
-    renderLoginPage();
+    //arrange
+    const emailInput = screen.getByLabelText(/email/i);
+    const passwordInput = screen.getByLabelText(/password/i);
 
+    //act
     await typeCredentials('test@example.com', 'password123');
 
-    expect(screen.getByLabelText(/email/i)).toHaveValue('test@example.com');
-    expect(screen.getByLabelText(/password/i)).toHaveValue('password123');
+    // assert
+    expect(emailInput).toHaveValue('test@example.com');
+    expect(passwordInput).toHaveValue('password123');
   });
 
   test('shows error when email is empty', async () => {
-    renderLoginPage();
+    //arrange
+    const emailInput = screen.getByLabelText(/email/i);
+    const passwordInput = screen.getByLabelText(/password/i);
+    await user.type(passwordInput, 'password123');
 
-    await user.type(screen.getByLabelText(/password/i), 'password123');
+    // email field is empty before submitting
+    expect(emailInput).toHaveValue('');
+
+    // act
     await clickSignIn();
 
-    expect(screen.getByText(/email.*required/i)).toBeInTheDocument();
+    // assert (using queryBy because validation error appears conditionally)
+    expect(screen.queryByText(/email.*required/i)).toBeInTheDocument();
   });
 
   test('shows error when password is empty', async () => {
-    renderLoginPage();
+    // arrange
+    const emailInput = screen.getByLabelText(/email/i);
+    const passwordInput = screen.getByLabelText(/password/i);
 
-    await user.type(screen.getByLabelText(/email/i), 'test@example.com');
+    await user.type(emailInput, 'test@example.com');
+
+    // password field is empty
+    expect(passwordInput).toHaveValue('');
+
+    // act
     await clickSignIn();
 
-    expect(screen.getByText(/password.*required/i)).toBeInTheDocument();
+    // assert
+    expect(screen.queryByText(/password.*required/i)).toBeInTheDocument();
   });
 
   test('shows validation errors when both fields are empty', async () => {
-    renderLoginPage();
+    // arrange
+    const emailInput = screen.getByLabelText(/email/i);
+    const passwordInput = screen.getByLabelText(/password/i);
 
+    // both inputs are empty before submission
+    expect(emailInput).toHaveValue('');
+    expect(passwordInput).toHaveValue('');
+
+    // act
     await clickSignIn();
 
-    expect(screen.getByText(/email.*required/i)).toBeInTheDocument();
-    expect(screen.getByText(/password.*required/i)).toBeInTheDocument();
+    // assert
+    expect(screen.queryByText(/email.*required/i)).toBeInTheDocument();
+    expect(screen.queryByText(/password.*required/i)).toBeInTheDocument();
   });
 
   test('calls login API when credentials are valid', async () => {
-    renderLoginPage();
-
+    // arrange
     const mockedLoginUser = vi.mocked(loginUser);
     const expectedAuth = mockLoginSuccess();
-
     mockedLoginUser.mockResolvedValue(expectedAuth);
-
     await typeCredentials('test@example.com', 'password123');
+
+    // act
     await clickSignIn();
 
+    // assert
     await waitFor(() => {
       expect(mockedLoginUser).toHaveBeenCalledTimes(1);
     });
@@ -146,14 +174,15 @@ describe('Login Flow', () => {
   });
 
   test('shows error toast and prevents navigation when login fails', async () => {
-    renderLoginPage();
-
+    // arrange
     const mockedLoginUser = vi.mocked(loginUser);
     mockedLoginUser.mockRejectedValue(new Error('Invalid credentials'));
-
     await typeCredentials('test@example.com', 'password123');
+
+    // act
     await clickSignIn();
 
+    // assert
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalled();
     });
@@ -161,15 +190,42 @@ describe('Login Flow', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  test('navigates to projects page after successful login', async () => {
-    renderLoginPage();
+  test('allows resubmission after failed login', async () => {
+    // arrange
+    const mockedLoginUser = vi.mocked(loginUser);
 
+    mockedLoginUser
+      .mockRejectedValueOnce(new Error('Invalid credentials'))
+      .mockResolvedValueOnce(mockLoginSuccess());
+
+    await typeCredentials('test@example.com', 'password123');
+
+    // act
+    await clickSignIn();
+
+    // assert first failure
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalled();
+    });
+    // act again (retry login)
+    await clickSignIn();
+    // assert retry occurred
+    await waitFor(() => {
+      expect(mockedLoginUser).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  test('navigates to projects page after successful login', async () => {
+    // arrange
     const mockedLoginUser = vi.mocked(loginUser);
     mockedLoginUser.mockResolvedValue(mockLoginSuccess());
 
     await typeCredentials('test@example.com', 'password123');
+
+    // act
     await clickSignIn();
 
+    // assert
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(ROUTES.APP.PROJECTS);
     });
@@ -178,44 +234,22 @@ describe('Login Flow', () => {
   });
 
   test('stores auth token after successful login', async () => {
+    // arrange
     const { authService } = await import('../../services/auth.service');
-
-    renderLoginPage();
-
     const expectedAuth = mockLoginSuccess();
     vi.mocked(loginUser).mockResolvedValue(expectedAuth);
 
     await typeCredentials('test@example.com', 'password123');
+
+    // act
     await clickSignIn();
 
+    // assert
     await waitFor(() => {
       expect(authService.setAuth).toHaveBeenCalledWith(
         expectedAuth.token,
         expectedAuth.user,
       );
-    });
-  });
-
-  test('allows resubmission after failed login', async () => {
-    renderLoginPage();
-
-    const mockedLoginUser = vi.mocked(loginUser);
-
-    mockedLoginUser
-      .mockRejectedValueOnce(new Error('Invalid credentials'))
-      .mockResolvedValueOnce(mockLoginSuccess());
-
-    await typeCredentials('test@example.com', 'password123');
-    await clickSignIn();
-
-    await waitFor(() => {
-      expect(toast.error).toHaveBeenCalled();
-    });
-
-    await clickSignIn();
-
-    await waitFor(() => {
-      expect(mockedLoginUser).toHaveBeenCalledTimes(2);
     });
   });
 });
