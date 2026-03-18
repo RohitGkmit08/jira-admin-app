@@ -5,7 +5,6 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
 import LoginForm from '../../features/login/components/login-form';
-import { useLogin } from '../../features/login/hooks/use-login';
 
 afterEach(() => {
   cleanup();
@@ -54,26 +53,30 @@ describe('LoginForm Unit Tests', () => {
 
   test('shows error when email is empty', async () => {
     const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/password/i);
-    await user.type(passwordInput, 'password123');
     expect(emailInput).toHaveValue('');
     await clickSignIn();
-    expect(screen.queryByText(/email.*required/i)).toBeInTheDocument();
+    expect(await screen.findByText(/email.*required/i)).toBeInTheDocument();
   });
 
   test('shows error when password is empty', async () => {
-    const emailInput = screen.getByLabelText(/email/i);
     const passwordInput = screen.getByLabelText(/password/i);
-    await user.type(emailInput, 'test@example.com');
     expect(passwordInput).toHaveValue('');
     await clickSignIn();
-    expect(screen.queryByText(/password.*required/i)).toBeInTheDocument();
+    expect(await screen.findByText(/password.*required/i)).toBeInTheDocument();
   });
 
   test('shows error for invalid email format', async () => {
     await typeCredentials('invalid-email', 'password123');
     await clickSignIn();
-    expect(screen.getByText(/invalid email/i)).toBeInTheDocument();
+    expect(await screen.findByText(/invalid email/i)).toBeInTheDocument();
+  });
+
+  test('shows error when password is less than 4 characters', async () => {
+    await typeCredentials('test@example.com', '123');
+    await clickSignIn();
+    expect(
+      await screen.findByText(/minimum 4 characters required/i),
+    ).toBeInTheDocument();
   });
 
   test('shows validation errors when both fields are empty', async () => {
@@ -82,7 +85,9 @@ describe('LoginForm Unit Tests', () => {
     expect(emailInput).toHaveValue('');
     expect(passwordInput).toHaveValue('');
     await clickSignIn();
-    expect(screen.queryByText(/email.*required/i)).toBeInTheDocument();
-    expect(screen.queryByText(/password.*required/i)).toBeInTheDocument();
+
+    expect(await screen.findByText(/email.*required/i)).toBeInTheDocument();
+
+    expect(await screen.findByText(/password.*required/i)).toBeInTheDocument();
   });
 });
