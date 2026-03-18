@@ -126,7 +126,7 @@ describe('Login Flow', () => {
     expect(toast.success).toHaveBeenCalled();
   });
 
-  test('navigates to projects page after successful login', async () => {
+  test('navigates to projects page after successful login and show sucess toast', async () => {
     const mockedLoginUser = vi.mocked(loginUser);
     mockedLoginUser.mockResolvedValue(mockLoginSuccess());
     await typeCredentials('test@example.com', 'password123');
