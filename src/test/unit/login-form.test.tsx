@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
 import LoginForm from '../../features/login/components/login-form';
+import { useLogin } from '../../features/login/hooks/use-login';
 
 afterEach(() => {
   cleanup();
@@ -67,6 +68,12 @@ describe('LoginForm Unit Tests', () => {
     expect(passwordInput).toHaveValue('');
     await clickSignIn();
     expect(screen.queryByText(/password.*required/i)).toBeInTheDocument();
+  });
+
+  test('shows error for invalid email format', async () => {
+    await typeCredentials('invalid-email', 'password123');
+    await clickSignIn();
+    expect(screen.getByText(/invalid email/i)).toBeInTheDocument();
   });
 
   test('shows validation errors when both fields are empty', async () => {
