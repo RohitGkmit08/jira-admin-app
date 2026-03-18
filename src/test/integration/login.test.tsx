@@ -8,7 +8,9 @@ import { MemoryRouter } from 'react-router-dom';
 import { loginUser } from '../../api/auth.api';
 import { ROUTES } from '../../constants/routes';
 import LoginForm from '../../features/login/components/login-form';
+
 const { authService } = await import('../../services/auth.service');
+
 const mockNavigate = vi.fn();
 
 vi.mock('react-router-dom', async () => {
@@ -64,12 +66,9 @@ describe('Login Flow', () => {
     );
   };
 
-  const typeCredentials = async (email: string, password: string) => {
+  const submitLogin = async (email: string, password: string) => {
     await user.type(screen.getByLabelText(/email/i), email);
     await user.type(screen.getByLabelText(/password/i), password);
-  };
-
-  const clickSignIn = async () => {
     await user.click(screen.getByRole('button', { name: /sign in/i }));
   };
 
@@ -81,14 +80,11 @@ describe('Login Flow', () => {
   });
 
   test('shows error toast and prevents navigation when login fails', async () => {
-    const mockedLoginUser = vi.mocked(loginUser);
-    mockedLoginUser.mockRejectedValue(new Error('Invalid credentials'));
-    await typeCredentials('test@example.com', 'password123');
-    await clickSignIn();
+    vi.mocked(loginUser).mockRejectedValue(new Error('Invalid credentials'));
+    await submitLogin('test@example.com', 'password123');
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalled();
     });
-
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
@@ -97,13 +93,13 @@ describe('Login Flow', () => {
     mockedLoginUser
       .mockRejectedValueOnce(new Error('Invalid credentials'))
       .mockResolvedValueOnce(mockLoginSuccess());
+    await submitLogin('test@example.com', 'password123');
 
-    await typeCredentials('test@example.com', 'password123');
-    await clickSignIn();
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalled();
     });
-    await clickSignIn();
+    await user.click(screen.getByRole('button', { name: /sign in/i }));
+
     await waitFor(() => {
       expect(mockedLoginUser).toHaveBeenCalledTimes(2);
     });
@@ -115,22 +111,20 @@ describe('Login Flow', () => {
     const mockedLoginUser = vi.mocked(loginUser);
     const expectedAuth = mockLoginSuccess();
     mockedLoginUser.mockResolvedValue(expectedAuth);
-    await typeCredentials('test@example.com', 'password123');
-    await clickSignIn();
+    await submitLogin('test@example.com', 'password123');
     await waitFor(() => {
       expect(mockedLoginUser).toHaveBeenCalledTimes(1);
     });
+
     expect(mockedLoginUser).toHaveBeenCalledWith({
       email: 'test@example.com',
       password: 'password123',
     });
   });
 
-  test('navigates to projects page after successful login and show sucess toast', async () => {
-    const mockedLoginUser = vi.mocked(loginUser);
-    mockedLoginUser.mockResolvedValue(mockLoginSuccess());
-    await typeCredentials('test@example.com', 'password123');
-    await clickSignIn();
+  test('navigates to projects page after successful login and show success toast', async () => {
+    vi.mocked(loginUser).mockResolvedValue(mockLoginSuccess());
+    await submitLogin('test@example.com', 'password123');
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(ROUTES.APP.PROJECTS);
     });
@@ -141,8 +135,7 @@ describe('Login Flow', () => {
   test('stores auth token after successful login', async () => {
     const expectedAuth = mockLoginSuccess();
     vi.mocked(loginUser).mockResolvedValue(expectedAuth);
-    await typeCredentials('test@example.com', 'password123');
-    await clickSignIn();
+    await submitLogin('test@example.com', 'password123');
     await waitFor(() => {
       expect(authService.setAuth).toHaveBeenCalledWith(
         expectedAuth.token,
