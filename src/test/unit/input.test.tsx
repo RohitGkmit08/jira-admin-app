@@ -1,20 +1,23 @@
 import '@testing-library/jest-dom/vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, test, expect, vi } from 'vitest';
+import { describe, test, expect, vi, afterEach } from 'vitest';
+import { cleanup } from '@testing-library/react';
 
 import Input from '../../components/common/input';
+
+afterEach(() => {
+  cleanup();
+});
 
 describe('Input component', () => {
   test('renders input with label', () => {
     render(<Input label="Email" type="text" />);
-
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
   });
 
   test('passes value prop correctly', () => {
     render(<Input label="Email" type="text" value="test@example.com" />);
-
     expect(screen.getByLabelText(/email/i)).toHaveValue('test@example.com');
   });
 
