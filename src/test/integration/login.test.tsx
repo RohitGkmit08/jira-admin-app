@@ -8,7 +8,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { loginUser } from '../../api/auth.api';
 import { ROUTES } from '../../constants/routes';
 import LoginForm from '../../features/login/components/login-form';
-
+const { authService } = await import('../../services/auth.service');
 const mockNavigate = vi.fn();
 
 vi.mock('react-router-dom', async () => {
@@ -80,21 +80,6 @@ describe('Login Flow', () => {
     renderLoginPage();
   });
 
-  test('calls login API when credentials are valid', async () => {
-    const mockedLoginUser = vi.mocked(loginUser);
-    const expectedAuth = mockLoginSuccess();
-    mockedLoginUser.mockResolvedValue(expectedAuth);
-    await typeCredentials('test@example.com', 'password123');
-    await clickSignIn();
-    await waitFor(() => {
-      expect(mockedLoginUser).toHaveBeenCalledTimes(1);
-    });
-    expect(mockedLoginUser).toHaveBeenCalledWith({
-      email: 'test@example.com',
-      password: 'password123',
-    });
-  });
-
   test('shows error toast and prevents navigation when login fails', async () => {
     const mockedLoginUser = vi.mocked(loginUser);
     mockedLoginUser.mockRejectedValue(new Error('Invalid credentials'));
@@ -126,6 +111,21 @@ describe('Login Flow', () => {
     expect(toast.success).toHaveBeenCalled();
   });
 
+  test('calls login API when credentials are valid', async () => {
+    const mockedLoginUser = vi.mocked(loginUser);
+    const expectedAuth = mockLoginSuccess();
+    mockedLoginUser.mockResolvedValue(expectedAuth);
+    await typeCredentials('test@example.com', 'password123');
+    await clickSignIn();
+    await waitFor(() => {
+      expect(mockedLoginUser).toHaveBeenCalledTimes(1);
+    });
+    expect(mockedLoginUser).toHaveBeenCalledWith({
+      email: 'test@example.com',
+      password: 'password123',
+    });
+  });
+
   test('navigates to projects page after successful login and show sucess toast', async () => {
     const mockedLoginUser = vi.mocked(loginUser);
     mockedLoginUser.mockResolvedValue(mockLoginSuccess());
@@ -139,7 +139,6 @@ describe('Login Flow', () => {
   });
 
   test('stores auth token after successful login', async () => {
-    const { authService } = await import('../../services/auth.service');
     const expectedAuth = mockLoginSuccess();
     vi.mocked(loginUser).mockResolvedValue(expectedAuth);
     await typeCredentials('test@example.com', 'password123');
