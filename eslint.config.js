@@ -7,6 +7,7 @@ import importPlugin from 'eslint-plugin-import';
 import prettier from 'eslint-config-prettier';
 
 export default [
+  { ignores: ['dist', 'coverage'] },
   js.configs.recommended,
 
   ...tseslint.configs.recommended,
