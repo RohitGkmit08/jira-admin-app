@@ -32,6 +32,7 @@ const LoginForm = () => {
         <Input
           label="Password"
           name="password"
+          type="password"
           value={form.password}
           onChange={handleChange}
           error={Boolean(errors.password)}
