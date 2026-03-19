@@ -62,8 +62,7 @@ describe('LoginForm Unit Tests', () => {
 
   test('shows error when password is empty', async () => {
     const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/password/i);
-    var a;
+    const passwordInput = screen.getByLabelText(/nothing/i);
     await user.type(emailInput, 'test@example.com');
     expect(passwordInput).toHaveValue('');
     await clickSignIn();
