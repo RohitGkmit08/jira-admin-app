@@ -1,8 +1,7 @@
 import '@testing-library/jest-dom/vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, test, expect, vi, afterEach } from 'vitest';
-import { cleanup } from '@testing-library/react';
 
 import Input from '../../components/common/input';
 
@@ -24,7 +23,6 @@ describe('Input component', () => {
   test('calls onChange when typing', async () => {
     const user = userEvent.setup();
     const handleChange = vi.fn();
-
     render(<Input label="Email" type="text" onChange={handleChange} />);
     const input = screen.getByLabelText(/email/i);
     await user.type(input, 'abc');
@@ -34,11 +32,11 @@ describe('Input component', () => {
   test('toggles password visibility', async () => {
     const user = userEvent.setup();
     render(<Input label="Password" type="password" />);
-    const input = screen.getByLabelText(/password/i);
+    const passwordField = screen.getByLabelText(/password/i);
     const toggleBtn = screen.getByRole('button');
-    expect(input).toHaveAttribute('type', 'password');
+    expect(passwordField).toHaveAttribute('type', 'password');
     await user.click(toggleBtn);
-    expect(input).toHaveAttribute('type', 'text');
+    expect(passwordField).toHaveAttribute('type', 'text');
   });
 
   test('does not render toggle button for non-password input', () => {

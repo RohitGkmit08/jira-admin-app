@@ -2,12 +2,18 @@ import { describe, test, expect } from 'vitest';
 
 import { EMAIL_REGEX } from '../../constants/regex';
 
-describe('EMAIL_REGEX', () => {
+describe('email regex validations', () => {
   test('accepts valid email format', () => {
     const validEmails = [
       'abc@gmail.com',
       'user123@gmail.com',
       'hello.123@mail.com',
+      'test@yahoo.com',
+      'user@outlook.com',
+      'hello.123@mail.co',
+      'user@domain.in',
+      'name@company.org',
+      'user@sub.domain.com',
     ];
 
     validEmails.forEach((email) => {
@@ -26,6 +32,9 @@ describe('EMAIL_REGEX', () => {
       ' ',
       '1',
       'abcd',
+      'abc@domain.',
+      'abc@ domain.com',
+      'abcdomain.com',
     ];
 
     invalidEmails.forEach((email) => {

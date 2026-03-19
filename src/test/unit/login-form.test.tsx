@@ -35,14 +35,6 @@ describe('LoginForm Unit Tests', () => {
     renderLoginPage();
   });
 
-  test('renders login form', () => {
-    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /sign in/i }),
-    ).toBeInTheDocument();
-  });
-
   test('allows user to type email and password', async () => {
     const emailInput = screen.getByLabelText(/email/i);
     const passwordInput = screen.getByLabelText(/password/i);
@@ -58,17 +50,17 @@ describe('LoginForm Unit Tests', () => {
     expect(await screen.findByText(/email.*required/i)).toBeInTheDocument();
   });
 
+  test('shows error for invalid email format', async () => {
+    await typeCredentials('invalid-email', 'password123');
+    await clickSignIn();
+    expect(await screen.findByText(/invalid email/i)).toBeInTheDocument();
+  });
+
   test('shows error when password is empty', async () => {
     const passwordInput = screen.getByLabelText(/password/i);
     expect(passwordInput).toHaveValue('');
     await clickSignIn();
     expect(await screen.findByText(/password.*required/i)).toBeInTheDocument();
-  });
-
-  test('shows error for invalid email format', async () => {
-    await typeCredentials('invalid-email', 'password123');
-    await clickSignIn();
-    expect(await screen.findByText(/invalid email/i)).toBeInTheDocument();
   });
 
   test('shows error when password is less than 4 characters', async () => {
@@ -77,17 +69,5 @@ describe('LoginForm Unit Tests', () => {
     expect(
       await screen.findByText(/minimum 4 characters required/i),
     ).toBeInTheDocument();
-  });
-
-  test('shows validation errors when both fields are empty', async () => {
-    const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/password/i);
-    expect(emailInput).toHaveValue('');
-    expect(passwordInput).toHaveValue('');
-    await clickSignIn();
-
-    expect(await screen.findByText(/email.*required/i)).toBeInTheDocument();
-
-    expect(await screen.findByText(/password.*required/i)).toBeInTheDocument();
   });
 });
