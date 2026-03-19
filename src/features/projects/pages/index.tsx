@@ -197,6 +197,7 @@ export default function ProjectsPage() {
                         setEditId(project._id);
                         setEditName(project.name);
                       }}
+                      data-testid={`edit-icon-${project._id}`}
                     >
                       <EditIcon fontSize="small" />
                     </IconButton>
