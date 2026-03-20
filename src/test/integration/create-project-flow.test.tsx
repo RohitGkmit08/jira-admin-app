@@ -46,17 +46,15 @@ describe('Create Project Flow', () => {
   });
 
   const openDialog = async () => {
-    const createButtons = screen.getAllByRole('button', {
-      name: /create project/i,
-    });
-    await userEvent.click(createButtons[0]);
+    await userEvent.click(
+      screen.getByRole('button', { name: /create project/i }),
+    );
     await screen.findByRole('dialog');
   };
 
   const submitProjectForm = async (projectName: string) => {
-    const input = screen.getByLabelText(/project name/i);
-    await userEvent.clear(input);
-    await userEvent.type(input, projectName);
+    await userEvent.clear(screen.getByLabelText(/project name/i));
+    await userEvent.type(screen.getByLabelText(/project name/i), projectName);
     await userEvent.click(screen.getByRole('button', { name: /^create$/i }));
   };
 
@@ -66,13 +64,18 @@ describe('Create Project Flow', () => {
 
   test('opens create project dialog', async () => {
     await openDialog();
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  test('input updates when typing', async () => {
+    await openDialog();
+    const input = screen.getByLabelText(/project name/i);
+    await userEvent.type(input, 'New Project');
+    expect(input).toHaveValue('New Project');
   });
 
   test('create button is disabled when project name is empty', async () => {
     await openDialog();
-    const createButton = screen.getByRole('button', { name: /^create$/i });
-    expect(createButton).toBeDisabled();
+    expect(screen.getByRole('button', { name: /^create$/i })).toBeDisabled();
   });
 
   test('creates project successfully', async () => {
@@ -89,15 +92,6 @@ describe('Create Project Flow', () => {
     expect(toast.success).toHaveBeenCalled();
   });
 
-  test('shows error toast on API failure', async () => {
-    vi.mocked(createProject).mockRejectedValue(new Error('API Error'));
-    await openDialog();
-    await submitProjectForm('Test Project');
-    await waitFor(() => {
-      expect(toast.error).toHaveBeenCalled();
-    });
-  });
-
   test('closes dialog after successful creation', async () => {
     vi.mocked(createProject).mockResolvedValue({
       id: '1',
@@ -110,17 +104,19 @@ describe('Create Project Flow', () => {
     await waitForElementToBeRemoved(dialog);
   });
 
+  test('shows error toast on API failure', async () => {
+    vi.mocked(createProject).mockRejectedValue(new Error('API Error'));
+    await openDialog();
+    await submitProjectForm('Test Project');
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalled();
+    });
+  });
+
   test('cancel button closes dialog', async () => {
     await openDialog();
     const dialog = screen.getByRole('dialog');
     await userEvent.click(screen.getByRole('button', { name: /cancel/i }));
     await waitForElementToBeRemoved(dialog);
-  });
-
-  test('input updates when typing', async () => {
-    await openDialog();
-    const input = screen.getByLabelText(/project name/i);
-    await userEvent.type(input, 'New Project');
-    expect(input).toHaveValue('New Project');
   });
 });

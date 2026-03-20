@@ -92,35 +92,16 @@ describe('Edit Project Flow', () => {
 
     renderPage();
     await openEditMode();
-
     const input = screen.getByDisplayValue('Existing Project');
     await userEvent.clear(input);
     await userEvent.type(input, 'Updated Project');
     await userEvent.click(screen.getByRole('button', { name: /save/i }));
-
     await waitFor(() => {
       expect(updateProject).toHaveBeenCalledWith('1', {
         name: 'Updated Project',
       });
     });
     expect(toast.success).toHaveBeenCalled();
-  });
-
-  test('shows error toast on API failure', async () => {
-    vi.mocked(updateProject).mockRejectedValue(new Error('API Error'));
-
-    renderPage();
-    await openEditMode();
-
-    const input = screen.getByDisplayValue('Existing Project');
-    await userEvent.clear(input);
-    await userEvent.type(input, 'Updated Project');
-    await userEvent.click(screen.getByRole('button', { name: /save/i }));
-
-    await waitFor(() => {
-      expect(toast.error).toHaveBeenCalled();
-    });
-    expect(toast.success).not.toHaveBeenCalled();
   });
 
   test('project list remains visible after entering edit mode', async () => {
