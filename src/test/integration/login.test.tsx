@@ -99,7 +99,6 @@ describe('Login Flow', () => {
       expect(toast.error).toHaveBeenCalled();
     });
     await user.click(screen.getByRole('button', { name: /sign in/i }));
-
     await waitFor(() => {
       expect(mockedLoginUser).toHaveBeenCalledTimes(2);
     });
@@ -128,7 +127,6 @@ describe('Login Flow', () => {
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(ROUTES.APP.PROJECTS);
     });
-
     expect(toast.success).toHaveBeenCalled();
   });
 
