@@ -82,7 +82,9 @@ describe('Create Project Flow', () => {
     'create button is disabled when project name is "%s"',
     async (input) => {
       await openDialog();
-      await userEvent.type(screen.getByLabelText(/project name/i), input);
+      if (input) {
+        await userEvent.type(screen.getByLabelText(/project name/i), input);
+      }
       expect(screen.getByRole('button', { name: 'Create' })).toBeDisabled();
     },
   );
