@@ -78,6 +78,15 @@ describe('Create Project Flow', () => {
     expect(screen.getByRole('button', { name: /^create$/i })).toBeDisabled();
   });
 
+  test.each(['', '   '])(
+    'create button is disabled when project name is "%s"',
+    async (input) => {
+      await openDialog();
+      await userEvent.type(screen.getByLabelText(/project name/i), input);
+      expect(screen.getByRole('button', { name: 'Create' })).toBeDisabled();
+    },
+  );
+
   test('creates project successfully', async () => {
     vi.mocked(createProject).mockResolvedValue({
       id: '1',
