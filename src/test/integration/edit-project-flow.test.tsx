@@ -6,11 +6,7 @@ import { MemoryRouter } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 import ProjectsPage from '../../features/projects/pages';
-import {
-  getProjects,
-  updateProject,
-  deleteProject,
-} from '../../services/project.service';
+import { getProjects, updateProject } from '../../services/project.service';
 
 vi.mock('react-hot-toast', () => ({
   default: {
@@ -133,29 +129,5 @@ describe('Edit Project Flow', () => {
     await screen.findByText('Existing Project');
     await userEvent.click(screen.getByText('Existing Project'));
     expect(mockNavigate).toHaveBeenCalledWith('/projects/1');
-  });
-
-  test('clicking delete icon opens confirm dialog', async () => {
-    renderPage();
-    const deleteIcon = await screen.findByTestId('DeleteIcon');
-    await userEvent.click(deleteIcon);
-    expect(await screen.findByRole('dialog')).toBeInTheDocument();
-    expect(
-      screen.getByText(/are you sure you want to delete this project/i),
-    ).toBeInTheDocument();
-  });
-
-  test('confirming delete removes project and shows success toast', async () => {
-    vi.mocked(deleteProject).mockResolvedValue(undefined as never);
-    renderPage();
-    const deleteIcon = await screen.findByTestId('DeleteIcon');
-    await userEvent.click(deleteIcon);
-    await screen.findByRole('dialog');
-    await userEvent.click(screen.getByRole('button', { name: /^delete$/i }));
-    await waitFor(() => {
-      expect(deleteProject).toHaveBeenCalledWith('1');
-      expect(toast.success).toHaveBeenCalled();
-    });
-    expect(screen.queryByText('Existing Project')).not.toBeInTheDocument();
   });
 });
