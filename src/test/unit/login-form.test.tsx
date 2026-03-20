@@ -47,7 +47,7 @@ describe('LoginForm Unit Tests', () => {
     const emailInput = screen.getByLabelText(/email/i);
     expect(emailInput).toHaveValue('');
     await clickSignIn();
-    expect(await screen.findByText(/email.*required/i)).toBeInTheDocument();
+    expect(await screen.findByText(/email is required/i)).toBeInTheDocument();
   });
 
   test('shows error for invalid email format', async () => {
@@ -60,7 +60,9 @@ describe('LoginForm Unit Tests', () => {
     const passwordInput = screen.getByLabelText(/password/i);
     expect(passwordInput).toHaveValue('');
     await clickSignIn();
-    expect(await screen.findByText(/password.*required/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/password is required/i),
+    ).toBeInTheDocument();
   });
 
   test('shows error when password is less than 4 characters', async () => {

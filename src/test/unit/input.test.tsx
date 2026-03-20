@@ -32,7 +32,7 @@ describe('Input component', () => {
   test('toggles password visibility', async () => {
     const user = userEvent.setup();
     render(<Input label="Password" type="password" />);
-    const passwordField = screen.getByLabelText(/nothing/i);
+    const passwordField = screen.getByLabelText(/password/i);
     const toggleBtn = screen.getByRole('button');
     expect(passwordField).toHaveAttribute('type', 'password');
     await user.click(toggleBtn);
