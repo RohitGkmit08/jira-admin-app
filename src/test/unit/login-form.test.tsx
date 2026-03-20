@@ -10,7 +10,7 @@ afterEach(() => {
   cleanup();
 });
 
-describe('LoginForm Unit Tests', () => {
+describe('LoginForm component', () => {
   let user: ReturnType<typeof userEvent.setup>;
 
   const renderLoginPage = () => {

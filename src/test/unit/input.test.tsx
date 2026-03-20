@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { render, screen, cleanup } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { describe, test, expect, vi, afterEach } from 'vitest';
+import userEvent, { type UserEvent } from '@testing-library/user-event';
+import { describe, test, expect, vi, afterEach, beforeEach } from 'vitest';
 
 import Input from '../../components/common/input';
 
@@ -9,19 +9,17 @@ afterEach(() => {
   cleanup();
 });
 
+let user: UserEvent;
+beforeEach(() => {
+  user = userEvent.setup();
+});
 describe('Input component', () => {
-  test('renders input with label', () => {
-    render(<Input label="Email" type="text" />);
-    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-  });
-
   test('passes value prop correctly', () => {
-    render(<Input label="Email" type="text" value="test@example.com" />);
+    render(<Input label="Email" value="test@example.com" />);
     expect(screen.getByLabelText(/email/i)).toHaveValue('test@example.com');
   });
 
   test('calls onChange when typing', async () => {
-    const user = userEvent.setup();
     const handleChange = vi.fn();
     render(<Input label="Email" type="text" onChange={handleChange} />);
     const input = screen.getByLabelText(/email/i);
@@ -30,7 +28,6 @@ describe('Input component', () => {
   });
 
   test('toggles password visibility', async () => {
-    const user = userEvent.setup();
     render(<Input label="Password" type="password" />);
     const passwordField = screen.getByLabelText(/password/i);
     const toggleBtn = screen.getByRole('button');
