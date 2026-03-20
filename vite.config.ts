@@ -5,5 +5,16 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: 'jsdom',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html'],
+      include: [
+        'src/components/common/input.tsx',
+        'src/features/login/components/login-form.tsx',
+        'src/constants/regex.ts',
+        'src/constants/routes.ts',
+        'src/features/projects/pages/index.tsx',
+      ],
+    },
   },
 });
