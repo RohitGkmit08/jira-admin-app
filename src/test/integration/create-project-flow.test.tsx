@@ -58,6 +58,14 @@ describe('Create Project Flow', () => {
     await userEvent.click(screen.getByRole('button', { name: /^create$/i }));
   };
 
+  test('create project button is visible and enabled', async () => {
+    const button = await screen.findByRole('button', {
+      name: /create project/i,
+    });
+    expect(button).toBeInTheDocument();
+    expect(button).toBeEnabled();
+  });
+
   test('shows empty state when no projects exist', async () => {
     expect(await screen.findByText(/no projects yet/i)).toBeInTheDocument();
   });
