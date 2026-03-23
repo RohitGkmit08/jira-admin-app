@@ -81,11 +81,6 @@ describe('Create Project Flow', () => {
     expect(input).toHaveValue('New Project');
   });
 
-  test('create button is disabled when project name is empty', async () => {
-    await openDialog();
-    expect(screen.getByRole('button', { name: /^create$/i })).toBeDisabled();
-  });
-
   test.each(['', '   '])(
     'create button is disabled when project name is "%s"',
     async (input) => {
