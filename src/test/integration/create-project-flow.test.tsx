@@ -54,9 +54,9 @@ describe('Create Project Flow', () => {
   };
 
   const submitProjectForm = async (projectName: string) => {
-    const label = screen.getByLabelText(/project name/i);
-    await userEvent.clear(label);
-    await userEvent.type(label, projectName);
+    const input = screen.getByLabelText(/project name/i);
+    await userEvent.clear(input);
+    await userEvent.type(input, projectName);
     await userEvent.click(screen.getByRole('button', { name: /^create$/i }));
   };
 
@@ -64,7 +64,6 @@ describe('Create Project Flow', () => {
     const button = screen.getByRole('button', {
       name: /create project/i,
     });
-
     expect(button).toBeInTheDocument();
     expect(button).toBeEnabled();
   });
@@ -72,41 +71,36 @@ describe('Create Project Flow', () => {
   test('shows empty state when no projects exist', async () => {
     const projects = await getProjects();
     expect(projects).toHaveLength(0);
-
     expect(await screen.findByText(/no projects yet/i)).toBeInTheDocument();
   });
 
   test('input updates according to text typed', async () => {
     await openDialog();
-
     const input = screen.getByLabelText(/project name/i);
     await userEvent.type(input, 'New Project');
-
     expect(input).toHaveValue('New Project');
   });
 
   describe('Create button validation', () => {
+    let input: HTMLElement;
+
     beforeEach(async () => {
       await openDialog();
+      input = screen.getByLabelText(/project name/i);
     });
 
     test.each(['', '   '])(
       'should be disabled when project name is "%s"',
-      async (input) => {
-        if (input) {
-          await userEvent.type(screen.getByLabelText(/project name/i), input);
+      async (value) => {
+        if (value) {
+          await userEvent.type(input, value);
         }
-
         expect(screen.getByRole('button', { name: /create/i })).toBeDisabled();
       },
     );
 
     test('create button is enabled for valid input', async () => {
-      await userEvent.type(
-        screen.getByLabelText(/project name/i),
-        'Valid Project',
-      );
-
+      await userEvent.type(input, 'Valid Project');
       expect(screen.getByRole('button', { name: /create/i })).toBeEnabled();
     });
   });
@@ -119,11 +113,9 @@ describe('Create Project Flow', () => {
 
     await openDialog();
     await submitProjectForm('Test Project');
-
     await waitFor(() => {
       expect(createProject).toHaveBeenCalled();
     });
-
     expect(toast.success).toHaveBeenCalled();
   });
 
@@ -135,18 +127,14 @@ describe('Create Project Flow', () => {
 
     await openDialog();
     await submitProjectForm('Test Project');
-
     const dialog = screen.getByRole('dialog');
-
     await waitForElementToBeRemoved(dialog);
   });
 
   test('shows error toast on API failure', async () => {
     vi.mocked(createProject).mockRejectedValue(new Error('API Error'));
-
     await openDialog();
     await submitProjectForm('Test Project');
-
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalled();
     });
@@ -154,11 +142,8 @@ describe('Create Project Flow', () => {
 
   test('cancel button closes dialog', async () => {
     await openDialog();
-
     const dialog = screen.getByRole('dialog');
-
     await userEvent.click(screen.getByRole('button', { name: /cancel/i }));
-
     await waitForElementToBeRemoved(dialog);
   });
 });

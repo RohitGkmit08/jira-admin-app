@@ -70,7 +70,6 @@ describe('Edit Project Flow', () => {
   test('project list remains visible after edit interaction', async () => {
     const editButton = await screen.findByTestId(/edit-icon/);
     await userEvent.click(editButton);
-
     expect(await screen.findByText('Existing Project')).toBeInTheDocument();
   });
 });
