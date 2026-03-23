@@ -46,35 +46,54 @@ describe('Create Project Flow', () => {
   });
 
   const openDialog = async () => {
-    const createButtons = screen.getAllByRole('button', {
-      name: /create project/i,
-    });
-
-    await userEvent.click(createButtons[0]);
+    await userEvent.click(
+      screen.getByRole('button', { name: /create project/i }),
+    );
     await screen.findByRole('dialog');
   };
 
   const submitProjectForm = async (projectName: string) => {
-    const input = screen.getByLabelText(/project name/i);
-
-    await userEvent.clear(input);
-    await userEvent.type(input, projectName);
-
+    await userEvent.clear(screen.getByLabelText(/project name/i));
+    await userEvent.type(screen.getByLabelText(/project name/i), projectName);
     await userEvent.click(screen.getByRole('button', { name: /^create$/i }));
   };
 
-  test('opens create project dialog', async () => {
-    await openDialog();
-
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  test('create project button is visible and enabled', async () => {
+    const button = await screen.findByRole('button', {
+      name: /create project/i,
+    });
+    expect(button).toBeInTheDocument();
+    expect(button).toBeEnabled();
   });
 
-  test('create button is disabled when project name is empty', async () => {
+  test('shows empty state when no projects exist', async () => {
+    expect(await screen.findByText(/no projects yet/i)).toBeInTheDocument();
+  });
+
+  test('opens create project dialog', async () => {
     await openDialog();
+  });
 
-    const createButton = screen.getByRole('button', { name: /^create$/i });
+  test('input updates when typing', async () => {
+    await openDialog();
+    const input = screen.getByLabelText(/project name/i);
+    await userEvent.type(input, 'New Project');
+    expect(input).toHaveValue('New Project');
+  });
 
-    expect(createButton).toBeDisabled();
+  describe('Create button validation', () => {
+    test.each(['', '   '])(
+      'should be disabled when project name is "%s"',
+      async (input) => {
+        await openDialog();
+
+        if (input) {
+          await userEvent.type(screen.getByLabelText(/project name/i), input);
+        }
+
+        expect(screen.getByRole('button', { name: /create/i })).toBeDisabled();
+      },
+    );
   });
 
   test('creates project successfully', async () => {
@@ -84,26 +103,11 @@ describe('Create Project Flow', () => {
     } as never);
 
     await openDialog();
-
     await submitProjectForm('Test Project');
-
     await waitFor(() => {
       expect(createProject).toHaveBeenCalled();
     });
-
     expect(toast.success).toHaveBeenCalled();
-  });
-
-  test('shows error toast on API failure', async () => {
-    vi.mocked(createProject).mockRejectedValue(new Error('API Error'));
-
-    await openDialog();
-
-    await submitProjectForm('Test Project');
-
-    await waitFor(() => {
-      expect(toast.error).toHaveBeenCalled();
-    });
   });
 
   test('closes dialog after successful creation', async () => {
@@ -113,31 +117,24 @@ describe('Create Project Flow', () => {
     } as never);
 
     await openDialog();
-
     await submitProjectForm('Test Project');
-
     const dialog = screen.getByRole('dialog');
-
     await waitForElementToBeRemoved(dialog);
+  });
+
+  test('shows error toast on API failure', async () => {
+    vi.mocked(createProject).mockRejectedValue(new Error('API Error'));
+    await openDialog();
+    await submitProjectForm('Test Project');
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalled();
+    });
   });
 
   test('cancel button closes dialog', async () => {
     await openDialog();
-
     const dialog = screen.getByRole('dialog');
-
     await userEvent.click(screen.getByRole('button', { name: /cancel/i }));
-
     await waitForElementToBeRemoved(dialog);
-  });
-
-  test('input updates when typing', async () => {
-    await openDialog();
-
-    const input = screen.getByLabelText(/project name/i);
-
-    await userEvent.type(input, 'New Project');
-
-    expect(input).toHaveValue('New Project');
   });
 });
