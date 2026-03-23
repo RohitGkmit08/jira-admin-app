@@ -3,6 +3,7 @@ import '@testing-library/jest-dom/vitest';
 import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 import ProjectsPage from '../../features/projects/pages';
 import { getProjects, updateProject } from '../../services/project.service';
@@ -40,27 +41,16 @@ describe('Edit Project Flow', () => {
         name: 'Existing Project',
       },
     ] as never);
+
+    renderPage();
   });
 
   test('renders existing project', async () => {
-    renderPage();
-
     expect(await screen.findByText('Existing Project')).toBeInTheDocument();
   });
 
-  test('edit icon is rendered', async () => {
-    renderPage();
-
-    const editButton = await screen.findByTestId(/edit-icon/);
-
-    expect(editButton).toBeInTheDocument();
-  });
-
   test('clicking edit icon triggers edit flow', async () => {
-    renderPage();
-
     const editButton = await screen.findByTestId(/edit-icon/);
-
     await userEvent.click(editButton);
 
     expect(editButton).toBeInTheDocument();
@@ -69,22 +59,16 @@ describe('Edit Project Flow', () => {
   test('shows error toast on API failure', async () => {
     vi.mocked(updateProject).mockRejectedValue(new Error('API Error'));
 
-    renderPage();
-
     const editButton = await screen.findByTestId(/edit-icon/);
-
     await userEvent.click(editButton);
 
     await waitFor(() => {
-      expect(editButton).toBeInTheDocument();
+      expect(toast.error).toHaveBeenCalled();
     });
   });
 
   test('project list remains visible after edit interaction', async () => {
-    renderPage();
-
     const editButton = await screen.findByTestId(/edit-icon/);
-
     await userEvent.click(editButton);
 
     expect(await screen.findByText('Existing Project')).toBeInTheDocument();
