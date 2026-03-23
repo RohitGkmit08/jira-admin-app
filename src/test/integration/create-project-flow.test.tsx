@@ -46,15 +46,17 @@ describe('Create Project Flow', () => {
   });
 
   const openDialog = async () => {
-    await userEvent.click(
-      screen.getByRole('button', { name: /create project/i }),
-    );
+    const createButton = screen.getByRole('button', {
+      name: /create project/i,
+    });
+    await userEvent.click(createButton);
     await screen.findByRole('dialog');
   };
 
   const submitProjectForm = async (projectName: string) => {
-    await userEvent.clear(screen.getByLabelText(/project name/i));
-    await userEvent.type(screen.getByLabelText(/project name/i), projectName);
+    const label = screen.getByLabelText(/project name/i);
+    await userEvent.clear(label);
+    await userEvent.type(label, projectName);
     await userEvent.click(screen.getByRole('button', { name: /^create$/i }));
   };
 
@@ -70,10 +72,6 @@ describe('Create Project Flow', () => {
     expect(await screen.findByText(/no projects yet/i)).toBeInTheDocument();
   });
 
-  test('opens create project dialog', async () => {
-    await openDialog();
-  });
-
   test('input updates when typing', async () => {
     await openDialog();
     const input = screen.getByLabelText(/project name/i);
@@ -86,7 +84,6 @@ describe('Create Project Flow', () => {
       'should be disabled when project name is "%s"',
       async (input) => {
         await openDialog();
-
         if (input) {
           await userEvent.type(screen.getByLabelText(/project name/i), input);
         }
@@ -115,7 +112,6 @@ describe('Create Project Flow', () => {
       id: '1',
       name: 'Test Project',
     } as never);
-
     await openDialog();
     await submitProjectForm('Test Project');
     const dialog = screen.getByRole('dialog');
