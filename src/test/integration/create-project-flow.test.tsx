@@ -71,7 +71,6 @@ describe('Create Project Flow', () => {
   test('shows empty state when no projects exist', async () => {
     const projects = await getProjects();
     expect(projects).toHaveLength(0);
-
     expect(await screen.findByText(/no projects yet/i)).toBeInTheDocument();
   });
 
@@ -79,18 +78,14 @@ describe('Create Project Flow', () => {
     beforeEach(async () => {
       await openDialog();
     });
-
     test('input updates according to text typed', async () => {
       const input = screen.getByLabelText(/project name/i);
-
       await userEvent.type(input, 'New Project');
-
       expect(input).toHaveValue('New Project');
     });
 
     describe('Create button validation', () => {
       let input: HTMLElement;
-
       beforeEach(() => {
         input = screen.getByLabelText(/project name/i);
       });
@@ -110,16 +105,13 @@ describe('Create Project Flow', () => {
 
       test('should be enabled when valid project name is entered', async () => {
         await userEvent.type(input, 'Valid Project');
-
         expect(screen.getByRole('button', { name: /create/i })).toBeEnabled();
       });
     });
 
     test('cancel button closes dialog', async () => {
       const dialog = screen.getByRole('dialog');
-
       await userEvent.click(screen.getByRole('button', { name: /cancel/i }));
-
       await waitForElementToBeRemoved(dialog);
     });
   });
@@ -129,10 +121,8 @@ describe('Create Project Flow', () => {
       id: '1',
       name: 'Test Project',
     } as never);
-
     await openDialog();
     await submitProjectForm('Test Project');
-
     await waitFor(() => {
       expect(createProject).toHaveBeenCalled();
     });
@@ -148,15 +138,12 @@ describe('Create Project Flow', () => {
 
     await openDialog();
     await submitProjectForm('Test Project');
-
     const dialog = screen.getByRole('dialog');
-
     await waitForElementToBeRemoved(dialog);
   });
 
   test('shows error toast on API failure', async () => {
     vi.mocked(createProject).mockRejectedValue(new Error('API Error'));
-
     await openDialog();
     await submitProjectForm('Test Project');
     await waitFor(() => {

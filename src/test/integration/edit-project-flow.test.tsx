@@ -57,28 +57,21 @@ describe('Edit Project Flow', () => {
 
   test('opens edit dialog on clicking edit icon', async () => {
     const editButton = await screen.findByTestId(/edit-icon-/);
-
     await userEvent.click(editButton);
-
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
   });
 
   test('project list remains visible after edit interaction', async () => {
     const editButton = await screen.findByTestId(/edit-icon-/);
-
     await userEvent.click(editButton);
-
     expect(await screen.findByText('Existing Project')).toBeInTheDocument();
   });
 
   test('save button is disabled when input is empty', async () => {
     const editButton = await screen.findByTestId(/edit-icon-/);
     await userEvent.click(editButton);
-
     const input = await screen.findByLabelText(/project name/i);
-
     await userEvent.clear(input);
-
     expect(screen.getByRole('button', { name: /save/i })).toBeDisabled();
   });
 
@@ -90,12 +83,9 @@ describe('Edit Project Flow', () => {
 
     const editButton = await screen.findByTestId(/edit-icon-/);
     await userEvent.click(editButton);
-
     const input = await screen.findByLabelText(/project name/i);
-
     await userEvent.clear(input);
     await userEvent.type(input, 'Updated Project');
-
     await userEvent.click(screen.getByRole('button', { name: /save/i }));
 
     await waitFor(() => {
@@ -108,15 +98,11 @@ describe('Edit Project Flow', () => {
 
   test('shows error toast on API failure', async () => {
     vi.mocked(updateProject).mockRejectedValue(new Error('API Error'));
-
     const editButton = await screen.findByTestId(/edit-icon-/);
     await userEvent.click(editButton);
-
     const input = await screen.findByLabelText(/project name/i);
-
     await userEvent.clear(input);
     await userEvent.type(input, 'Updated Project');
-
     await userEvent.click(screen.getByRole('button', { name: /save/i }));
 
     await waitFor(() => {
@@ -128,11 +114,8 @@ describe('Edit Project Flow', () => {
   test('cancel button closes edit dialog', async () => {
     const editButton = await screen.findByTestId(/edit-icon-/);
     await userEvent.click(editButton);
-
     const dialog = await screen.findByRole('dialog');
-
     await userEvent.click(screen.getByRole('button', { name: /cancel/i }));
-
     await waitForElementToBeRemoved(dialog);
   });
 });
