@@ -81,16 +81,20 @@ describe('Create Project Flow', () => {
     expect(input).toHaveValue('New Project');
   });
 
-  test.each(['', '   '])(
-    'create button is disabled when project name is "%s"',
-    async (input) => {
-      await openDialog();
-      if (input) {
-        await userEvent.type(screen.getByLabelText(/project name/i), input);
-      }
-      expect(screen.getByRole('button', { name: 'Create' })).toBeDisabled();
-    },
-  );
+  describe('Create button validation', () => {
+    test.each(['', '   '])(
+      'should be disabled when project name is "%s"',
+      async (input) => {
+        await openDialog();
+
+        if (input) {
+          await userEvent.type(screen.getByLabelText(/project name/i), input);
+        }
+
+        expect(screen.getByRole('button', { name: /create/i })).toBeDisabled();
+      },
+    );
+  });
 
   test('creates project successfully', async () => {
     vi.mocked(createProject).mockResolvedValue({
